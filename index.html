@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Church Health Snapshot</title>
+<style>
+  :root {
+    --primary: #2c3e6b;
+    --primary-light: #3d5a99;
+    --accent: #c9952b;
+    --bg: #f5f3ef;
+    --card: #ffffff;
+    --text: #2d2d2d;
+    --text-muted: #6b7280;
+    --border: #e0ddd7;
+    --green: #2e7d32;
+    --green-bg: #e8f5e9;
+    --green-border: #a5d6a7;
+    --yellow: #f57f17;
+    --yellow-bg: #fffde7;
+    --yellow-border: #fff59d;
+    --red: #c62828;
+    --red-bg: #ffebee;
+    --red-border: #ef9a9a;
+    --radius: 10px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── LOGIN SCREEN ── */
+  .login-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--primary) 0%, #1a2a4a 100%);
+  }
+
+  .login-card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 48px 40px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+  }
+
+  .login-card .logo-icon {
+    width: 72px;
+    height: 72px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+  }
+
+  .login-card .logo-icon svg {
+    width: 36px;
+    height: 36px;
+    fill: white;
+  }
+
+  .login-card h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 4px;
+  }
+
+  .login-card .subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 32px;
+  }
+
+  .login-tabs {
+    display: flex;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 24px;
+  }
+
+  .login-tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  .login-tab.active {
+    background: var(--card);
+    color: var(--primary);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .login-field {
+    margin-bottom: 16px;
+    text-align: left;
+  }
+
+  .login-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .login-field input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .login-field input:focus {
+    border-color: var(--primary);
+  }
+
+  .pin-input {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 20px 0;
+  }
+
+  .pin-input input {
+    width: 56px;
+    height: 64px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .pin-input input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(44,62,107,0.12);
+  }
+
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+  }
+
+  .login-btn:hover { background: var(--primary-light); }
+
+  .login-error {
+    color: var(--red);
+    font-size: 13px;
+    margin-top: 8px;
+    display: none;
+  }
+
+  /* ── MAIN APP ── */
+  .app-screen { display: none; }
+
+  .app-header {
+    background: var(--primary);
+    color: white;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-left svg {
+    width: 28px;
+    height: 28px;
+    fill: white;
+  }
+
+  .header-left h1 {
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .user-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    opacity: 0.9;
+  }
+
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .role-chip {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .logout-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .logout-btn:hover { background: rgba(255,255,255,0.1); }
+
+  /* ── SCORE BAR ── */
+  .score-bar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    position: sticky;
+    top: 60px;
+    z-index: 99;
+  }
+
+  .score-bar-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .score-progress {
+    flex: 1;
+  }
+
+  .score-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .score-track {
+    height: 8px;
+    background: #e8e5e0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .score-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease, background 0.4s ease;
+    width: 0%;
+    background: #ccc;
+  }
+
+  .score-display {
+    text-align: center;
+    min-width: 100px;
+  }
+
+  .score-number {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .score-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .rating-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 90px;
+    text-align: center;
+  }
+
+  /* ── FORM ── */
+  .form-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  .church-info-bar {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  .church-info-bar .field label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .church-info-bar .field input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .church-info-bar .field input:focus {
+    border-color: var(--primary);
+  }
+
+  .section {
+    background: var(--card);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 16px 24px;
+    background: var(--primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .section-header svg {
+    width: 22px;
+    height: 22px;
+    fill: white;
+    flex-shrink: 0;
+  }
+
+  .section-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
+  }
+
+  .section-header .section-score {
+    font-size: 14px;
+    opacity: 0.85;
+  }
+
+  .section-header .chevron {
+    transition: transform 0.2s;
+  }
+
+  .section.collapsed .section-header .chevron {
+    transform: rotate(-90deg);
+  }
+
+  .section.collapsed .section-body {
+    display: none;
+  }
+
+  .section-body {
+    padding: 8px 0;
+  }
+
+  .question {
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid #f0ede8;
+    transition: background 0.15s;
+  }
+
+  .question:last-child { border-bottom: none; }
+  .question:hover { background: #faf9f7; }
+
+  .question-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .question-num.answered {
+    background: var(--primary);
+    color: white;
+  }
+
+  .question-text {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .question-input {
+    flex-shrink: 0;
+    min-width: 180px;
+  }
+
+  .question-input select,
+  .question-input input[type="number"],
+  .question-input input[type="text"] {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    background: white;
+    transition: border-color 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .question-input select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+
+  .question-input select:focus,
+  .question-input input:focus {
+    border-color: var(--primary);
+  }
+
+  .question-input input[type="number"] {
+    text-align: right;
+  }
+
+  .question-score {
+    width: 40px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .question-score.scored { color: var(--green); }
+
+  .subsection-note {
+    padding: 10px 24px 10px 68px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-style: italic;
+    border-bottom: 1px solid #f0ede8;
+  }
+
+  /* ── RESULTS SECTION ── */
+  .results-section {
+    background: var(--card);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .results-header {
+    padding: 16px 24px;
+    background: #374151;
+    color: white;
+  }
+
+  .results-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .results-body {
+    padding: 24px;
+  }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0ede8;
+    font-size: 14px;
+  }
+
+  .result-row:last-child { border-bottom: none; }
+
+  .result-label { color: var(--text-muted); }
+  .result-value { font-weight: 700; }
+
+  .rating-explanation {
+    margin-top: 20px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .rating-explanation.green {
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+    color: var(--green);
+  }
+
+  .rating-explanation.yellow {
+    background: var(--yellow-bg);
+    border: 1px solid var(--yellow-border);
+    color: var(--yellow);
+  }
+
+  .rating-explanation.red {
+    background: var(--red-bg);
+    border: 1px solid var(--red-border);
+    color: var(--red);
+  }
+
+  /* ── ACTION BAR ── */
+  .action-bar {
+    max-width: 900px;
+    margin: 0 auto 40px;
+    padding: 0 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+
+  .btn {
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .btn-primary:hover { background: var(--primary-light); }
+
+  .btn-outline {
+    background: white;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+  }
+
+  .btn-outline:hover { background: var(--bg); }
+
+  /* ── FOOTER ── */
+  .app-footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 12px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .church-info-bar {
+      grid-template-columns: 1fr;
+    }
+
+    .question {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .question-input {
+      min-width: 100%;
+    }
+
+    .score-bar-inner {
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-right .user-badge span:not(.user-avatar) {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .login-card { padding: 32px 24px; }
+    .pin-input input { width: 48px; height: 56px; font-size: 24px; }
+    .form-container { padding: 16px; }
+    .question { padding: 12px 16px; }
+    .section-header { padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════ LOGIN SCREEN ═══════ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    </div>
+    <h1>Church Health Snapshot</h1>
+    <p class="subtitle">Assessment Tool</p>
+
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchLoginTab('pin')">PIN Code</button>
+      <button class="login-tab" onclick="switchLoginTab('email')">Email</button>
+    </div>
+
+    <!-- PIN Login -->
+    <div id="pinLogin">
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Enter your 4-digit PIN</p>
+      <div class="pin-input">
+        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="pin1" autofocus>
+        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="pin2">
+        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="pin3">
+        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="pin4">
+      </div>
+      <p class="login-error" id="pinError">Invalid PIN. Please try again.</p>
+      <button class="login-btn" onclick="handlePinLogin()">Sign In</button>
+    </div>
+
+    <!-- Email Login -->
+    <div id="emailLogin" style="display:none;">
+      <div class="login-field">
+        <label>Email Address</label>
+        <input type="email" id="emailInput" placeholder="you@church.org">
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <input type="password" id="passwordInput" placeholder="Enter your password">
+      </div>
+      <p class="login-error" id="emailError">Invalid credentials. Please try again.</p>
+      <button class="login-btn" onclick="handleEmailLogin()">Sign In</button>
+    </div>
+
+    <p style="font-size:12px; color:var(--text-muted); margin-top:20px;">
+      Contact your district administrator for access
+    </p>
+  </div>
+</div>
+
+<!-- ═══════ MAIN APP ═══════ -->
+<div class="app-screen" id="appScreen">
+
+  <!-- Header -->
+  <div class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <h1>Church Health Snapshot</h1>
+      </div>
+      <div class="header-right">
+        <div class="user-badge">
+          <div class="user-avatar" id="userAvatar">SH</div>
+          <span id="userName">Steve Harper</span>
+          <span class="role-chip" id="userRole">Admin</span>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sticky Score Bar -->
+  <div class="score-bar">
+    <div class="score-bar-inner">
+      <div class="score-progress">
+        <div class="score-progress-label">
+          <span>Progress</span>
+          <span id="progressPct">0%</span>
+        </div>
+        <div class="score-track">
+          <div class="score-fill" id="progressFill"></div>
+        </div>
+      </div>
+      <div class="score-display">
+        <div class="score-number" id="scoreNumber">0</div>
+        <div class="score-label">of 95</div>
+      </div>
+      <div class="rating-badge" id="ratingBadge" style="background:#e8e5e0; color:var(--text-muted);">
+        Not Rated
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-container">
+
+    <!-- Church Info -->
+    <div class="church-info-bar">
+      <div class="field">
+        <label>Church Name</label>
+        <input type="text" id="churchName" placeholder="First Assembly of God">
+      </div>
+      <div class="field">
+        <label>Pastor</label>
+        <input type="text" id="pastorName" placeholder="Rev. John Smith">
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input type="text" id="assessDate" readonly>
+      </div>
+    </div>
+
+    <!-- SECTION 1: Church Statistical Information -->
+    <div class="section" id="section1">
+      <div class="section-header" onclick="toggleSection('section1')">
+        <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+        <h2>Church Statistical Information</h2>
+        <span class="section-score" id="section1Score">0 pts</span>
+        <svg class="chevron" width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="question" data-q="q1">
+          <div class="question-num">1</div>
+          <div class="question-text">Does the church have an active children's ministry?</div>
+          <div class="question-input">
+            <select id="q1" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="question-score" id="q1score">/ 4</div>
+        </div>
+
+        <div class="question" data-q="q2">
+          <div class="question-num">2</div>
+          <div class="question-text">Does the church have an active youth ministry?</div>
+          <div class="question-input">
+            <select id="q2" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="question-score" id="q2score">/ 4</div>
+        </div>
+
+        <div class="question" data-q="q3">
+          <div class="question-num">3</div>
+          <div class="question-text">What is the current age of the pastor?</div>
+          <div class="question-input">
+            <input type="number" id="q3" placeholder="Age" min="18" max="100" oninput="calculate()">
+          </div>
+          <div class="question-score" id="q3score">/ 4</div>
+        </div>
+
+        <div class="question" data-q="q4">
+          <div class="question-num">4</div>
+          <div class="question-text">What is the median age of the congregation?</div>
+          <div class="question-input">
+            <input type="number" id="q4" placeholder="Median age" min="1" max="100" oninput="calculate()">
+          </div>
+          <div class="question-score" id="q4score">/ 4</div>
+        </div>
+
+        <div class="question" data-q="q5">
+          <div class="question-num">5</div>
+          <div class="question-text">What is the last year's average attendance?</div>
+          <div class="question-input">
+            <input type="number" id="q5" placeholder="Avg attendance" min="0" oninput="calculate()">
+          </div>
+          <div class="question-score" id="q5score">/ 5</div>
+        </div>
+
+        <div class="question" data-q="q6">
+          <div class="question-num">6</div>
+          <div class="question-text">Is the attendance over the last three years trending...</div>
+          <div class="question-input">
+            <select id="q6" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Declining">Declining</option>
+              <option value="Static">Static</option>
+              <option value="Increasing">Increasing</option>
+            </select>
+          </div>
+          <div class="question-score" id="q6score">/ 5</div>
+        </div>
+
+        <div class="question" data-q="q7">
+          <div class="question-num">7</div>
+          <div class="question-text">What is the church's status?</div>
+          <div class="question-input">
+            <select id="q7" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="General Council">General Council</option>
+              <option value="District Affiliated">District Affiliated</option>
+              <option value="Parent Affiliated">Parent Affiliated</option>
+            </select>
+          </div>
+          <div class="question-score" id="q7score">/ 1</div>
+        </div>
+
+        <div class="question" data-q="q8">
+          <div class="question-num">8</div>
+          <div class="question-text">Are the church's finances...</div>
+          <div class="question-input">
+            <select id="q8" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Declining">Declining</option>
+              <option value="Static">Static</option>
+              <option value="Increasing">Increasing</option>
+            </select>
+          </div>
+          <div class="question-score" id="q8score">/ 5</div>
+        </div>
+
+        <div class="question" data-q="q8b">
+          <div class="question-num">9</div>
+          <div class="question-text">What was the church's total income last year?</div>
+          <div class="question-input">
+            <input type="number" id="q8b" placeholder="$ Amount" min="0" oninput="calculate()">
+          </div>
+          <div class="question-score"></div>
+        </div>
+
+        <div class="question" data-q="q9">
+          <div class="question-num">10</div>
+          <div class="question-text">How many conversions to Christ occurred last year?</div>
+          <div class="question-input">
+            <input type="number" id="q9" placeholder="Count" min="0" oninput="calculate()">
+          </div>
+          <div class="question-score" id="q9score">/ 5</div>
+        </div>
+
+        <div class="question" data-q="q10">
+          <div class="question-num">11</div>
+          <div class="question-text">How many water baptisms occurred last year?</div>
+          <div class="question-input">
+            <input type="number" id="q10" placeholder="Count" min="0" oninput="calculate()">
+          </div>
+          <div class="question-score" id="q10score">/ 5</div>
+        </div>
+
+        <div class="question" data-q="q11">
+          <div class="question-num">12</div>
+          <div class="question-text">How many Spirit Baptisms occurred last year?</div>
+          <div class="question-input">
+            <input type="number" id="q11" placeholder="Count" min="0" oninput="calculate()">
+          </div>
+          <div class="question-score" id="q11score">/ 5</div>
+        </div>
+
+        <div class="question" data-q="q12">
+          <div class="question-num">13</div>
+          <div class="question-text">How many first time guests attended last year?</div>
+          <div class="question-input">
+            <input type="number" id="q12" placeholder="Count" min="0" oninput="calculate()">
+          </div>
+          <div class="question-score" id="q12score">/ 5</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SECTION 2: Community Demographics -->
+    <div class="section" id="section2">
+      <div class="section-header" onclick="toggleSection('section2')">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        <h2>Community Demographics</h2>
+        <span class="section-score" id="section2Score">0 pts</span>
+        <svg class="chevron" width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="subsection-note">
+          Use city-data.com to find demographic information for your community.
+        </div>
+
+        <div class="question" data-q="q13">
+          <div class="question-num">14</div>
+          <div class="question-text">What type of city is the church in?</div>
+          <div class="question-input">
+            <select id="q13" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Rural (Under 8000)">Rural (Under 8,000)</option>
+              <option value="Small city (8k-50k)">Small City (8k-50k)</option>
+              <option value="Large City (over 50k)">Large City (over 50k)</option>
+              <option value="Urban/Metro (100k+)">Urban/Metro (100k+)</option>
+            </select>
+          </div>
+          <div class="question-score"></div>
+        </div>
+
+        <div class="question" data-q="q14">
+          <div class="question-num">15</div>
+          <div class="question-text">Population</div>
+          <div class="question-input">
+            <input type="number" id="q14" placeholder="Population" min="0" oninput="calculate()">
+          </div>
+          <div class="question-score"></div>
+        </div>
+
+        <div class="question" data-q="q15">
+          <div class="question-num">16</div>
+          <div class="question-text">Population change</div>
+          <div class="question-input">
+            <select id="q15" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Declining">Declining</option>
+              <option value="Static">Static</option>
+              <option value="Increasing">Increasing</option>
+            </select>
+          </div>
+          <div class="question-score" id="q15score">/ 3</div>
+        </div>
+
+        <div class="question" data-q="q16">
+          <div class="question-num">17</div>
+          <div class="question-text">Median Resident Age</div>
+          <div class="question-input">
+            <input type="number" id="q16" placeholder="Median age" min="0" max="100" oninput="calculate()">
+          </div>
+          <div class="question-score" id="q16score">/ 4</div>
+        </div>
+
+        <div class="question" data-q="q17">
+          <div class="question-num">18</div>
+          <div class="question-text">Estimated Per Capita Income</div>
+          <div class="question-input">
+            <input type="number" id="q17" placeholder="$ Income" min="0" oninput="calculate()">
+          </div>
+          <div class="question-score" id="q17score">/ 4</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SECTION 3: Church Subjective Information -->
+    <div class="section" id="section3">
+      <div class="section-header" onclick="toggleSection('section3')">
+        <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+        <h2>Church Subjective Information</h2>
+        <span class="section-score" id="section3Score">0 pts</span>
+        <svg class="chevron" width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="section-body">
+
+        <div class="question" data-q="q18">
+          <div class="question-num">19</div>
+          <div class="question-text">Does the church have a dominant family?</div>
+          <div class="question-input">
+            <select id="q18" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="question-score" id="q18score">/ 2</div>
+        </div>
+
+        <div class="question" data-q="q19">
+          <div class="question-num">20</div>
+          <div class="question-text">Are the facilities in appearance, function, etc...</div>
+          <div class="question-input">
+            <select id="q19" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Declining">Declining</option>
+              <option value="Static">Static</option>
+              <option value="Increasing">Increasing</option>
+            </select>
+          </div>
+          <div class="question-score" id="q19score">/ 3</div>
+        </div>
+
+        <div class="question" data-q="q20">
+          <div class="question-num">21</div>
+          <div class="question-text">How would you rate the strategic thinking of the leadership?</div>
+          <div class="question-input">
+            <select id="q20" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Poor">Poor</option>
+              <option value="Moderate">Moderate</option>
+              <option value="Good">Good</option>
+              <option value="Excellent">Excellent</option>
+            </select>
+          </div>
+          <div class="question-score" id="q20score">/ 3</div>
+        </div>
+
+        <div class="question" data-q="q21">
+          <div class="question-num">22</div>
+          <div class="question-text">How would you rate the volunteer participation?</div>
+          <div class="question-input">
+            <select id="q21" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Poor">Poor</option>
+              <option value="Moderate">Moderate</option>
+              <option value="Good">Good</option>
+              <option value="Excellent">Excellent</option>
+            </select>
+          </div>
+          <div class="question-score" id="q21score">/ 3</div>
+        </div>
+
+        <div class="question" data-q="q22">
+          <div class="question-num">23</div>
+          <div class="question-text">Is the leader/congregation in denial regarding challenges?</div>
+          <div class="question-input">
+            <select id="q22" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="question-score" id="q22score">/ 2</div>
+        </div>
+
+        <div class="question" data-q="q23">
+          <div class="question-num">24</div>
+          <div class="question-text">How many hours of corporate prayer per week?</div>
+          <div class="question-input">
+            <input type="number" id="q23" placeholder="Hours" min="0" step="0.5" oninput="calculate()">
+          </div>
+          <div class="question-score" id="q23score">/ 5</div>
+        </div>
+
+        <div class="question" data-q="q24">
+          <div class="question-num">25</div>
+          <div class="question-text">Does an active vision exist within the church?</div>
+          <div class="question-input">
+            <select id="q24" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="question-score" id="q24score">/ 1</div>
+        </div>
+
+        <div class="question" data-q="q25">
+          <div class="question-num">26</div>
+          <div class="question-text">Is the current pastor/team exercising effective leadership?</div>
+          <div class="question-input">
+            <select id="q25" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="question-score" id="q25score">/ 2</div>
+        </div>
+
+        <div class="question" data-q="q26">
+          <div class="question-num">27</div>
+          <div class="question-text">Are the pastor and congregation "on the same page?"</div>
+          <div class="question-input">
+            <select id="q26" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="question-score" id="q26score">/ 2</div>
+        </div>
+
+        <div class="question" data-q="q27">
+          <div class="question-num">28</div>
+          <div class="question-text">Does the congregation express a strong desire to maintain the "Status Quo?"</div>
+          <div class="question-input">
+            <select id="q27" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </div>
+          <div class="question-score" id="q27score">/ 2</div>
+        </div>
+
+        <div class="question" data-q="q28">
+          <div class="question-num">29</div>
+          <div class="question-text">What decade does the church decor represent?</div>
+          <div class="question-input">
+            <select id="q28" onchange="calculate()">
+              <option value="">Select One</option>
+              <option value="Current Decade">Current Decade</option>
+              <option value="Last Decade">Last Decade</option>
+              <option value="Two Decades or More Past">Two Decades or More</option>
+            </select>
+          </div>
+          <div class="question-score" id="q28score">/ 3</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results-section">
+      <div class="results-header">
+        <h2>Calculations, Indicators &amp; Findings</h2>
+      </div>
+      <div class="results-body">
+        <h3 style="font-size:14px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">Finances</h3>
+        <div class="result-row">
+          <span class="result-label">Congregational Per Capita Giving</span>
+          <span class="result-value" id="perCapita">$0</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Potential Per Capita Giving (based on tithe)</span>
+          <span class="result-value" id="potentialPerCapita">$0</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Difference</span>
+          <span class="result-value" id="givingDiff">$0</span>
+        </div>
+
+        <h3 style="font-size:14px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin:20px 0 12px;">Community</h3>
+        <div class="result-row">
+          <span class="result-label">Community median age vs. Pastor age</span>
+          <span class="result-value" id="ageDiffPastor">--</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Community median age vs. Congregation</span>
+          <span class="result-value" id="ageDiffCong">--</span>
+        </div>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:8px; font-style:italic;">
+          Concerns arise when the pastor/congregation median age exceeds the community by 10+ years.
+        </p>
+
+        <div class="rating-explanation" id="ratingExplanation" style="display:none;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-bar">
+    <button class="btn btn-outline" onclick="alert('Save & continue later — coming soon')">Save Draft</button>
+    <button class="btn btn-primary" onclick="alert('Submit & email results — coming soon')">Submit Assessment</button>
+  </div>
+
+  <div class="app-footer">
+    Copyright &copy; 2016 North Texas District of the Assemblies of God, Target 1000 Department
+  </div>
+</div>
+
+<script>
+// ── LOGIN LOGIC ──
+const DEMO_USERS = {
+  '1234': { name: 'Steve Harper', initials: 'SH', role: 'Admin' },
+  '5678': { name: 'Pastor Jones', initials: 'PJ', role: 'Pastor' },
+  '0000': { name: 'District Lead', initials: 'DL', role: 'District' }
+};
+
+function switchLoginTab(tab) {
+  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('pinLogin').style.display = tab === 'pin' ? 'block' : 'none';
+  document.getElementById('emailLogin').style.display = tab === 'email' ? 'block' : 'none';
+}
+
+// PIN auto-advance
+document.querySelectorAll('.pin-input input').forEach((inp, i, arr) => {
+  inp.addEventListener('input', () => {
+    inp.value = inp.value.replace(/\D/g, '');
+    if (inp.value && i < arr.length - 1) arr[i + 1].focus();
+  });
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !inp.value && i > 0) arr[i - 1].focus();
+  });
+});
+
+function handlePinLogin() {
+  const pin = ['pin1','pin2','pin3','pin4'].map(id => document.getElementById(id).value).join('');
+  const user = DEMO_USERS[pin];
+  if (user) {
+    loginAs(user);
+  } else {
+    document.getElementById('pinError').style.display = 'block';
+    document.querySelectorAll('.pin-input input').forEach(i => { i.value = ''; });
+    document.getElementById('pin1').focus();
+  }
+}
+
+function handleEmailLogin() {
+  // Demo: accept any email with password "demo"
+  const email = document.getElementById('emailInput').value;
+  const pass = document.getElementById('passwordInput').value;
+  if (email && pass) {
+    const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const initials = name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    loginAs({ name, initials, role: 'Pastor' });
+  } else {
+    document.getElementById('emailError').style.display = 'block';
+  }
+}
+
+function loginAs(user) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  document.getElementById('userName').textContent = user.name;
+  document.getElementById('userAvatar').textContent = user.initials;
+  document.getElementById('userRole').textContent = user.role;
+  document.getElementById('assessDate').value = new Date().toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric'
+  });
+}
+
+function handleLogout() {
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.querySelectorAll('.pin-input input').forEach(i => { i.value = ''; });
+  document.getElementById('pin1').focus();
+}
+
+// ── SECTION TOGGLE ──
+function toggleSection(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+// ── SCORING ENGINE ──
+// Mirrors the exact spreadsheet formulas
+function calculate() {
+  let totalScore = 0;
+  let answered = 0;
+  const totalQuestions = 29;
+
+  // Helper
+  const val = id => { const el = document.getElementById(id); return el.value; };
+  const num = id => { const v = parseFloat(val(id)); return isNaN(v) ? 0 : v; };
+  const setScore = (id, score, max) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (score > 0) {
+      el.textContent = score + ' / ' + max;
+      el.classList.add('scored');
+    } else {
+      el.textContent = '/ ' + max;
+      el.classList.remove('scored');
+    }
+  };
+
+  // Track answered
+  const checkAnswered = id => { if (val(id)) answered++; };
+  ['q1','q2','q3','q4','q5','q6','q7','q8','q8b','q9','q10','q11','q12',
+   'q13','q14','q15','q16','q17',
+   'q18','q19','q20','q21','q22','q23','q24','q25','q26','q27','q28'].forEach(checkAnswered);
+
+  // Update question number indicators
+  document.querySelectorAll('.question').forEach(q => {
+    const qId = q.dataset.q;
+    const numEl = q.querySelector('.question-num');
+    if (qId && val(qId)) {
+      numEl.classList.add('answered');
+    } else {
+      numEl.classList.remove('answered');
+    }
+  });
+
+  // ── Section 1: Church Statistical ──
+  let s1 = 0;
+
+  // Q1: Children's ministry (Yes=4)
+  const q1s = val('q1') === 'Yes' ? 4 : 0;
+  s1 += q1s; setScore('q1score', q1s, 4);
+
+  // Q2: Youth ministry (Yes=4)
+  const q2s = val('q2') === 'Yes' ? 4 : 0;
+  s1 += q2s; setScore('q2score', q2s, 4);
+
+  // Q3: Pastor age (<60=1, <65=1, <70=1, <75=1) max 4
+  const pastorAge = num('q3');
+  let q3s = 0;
+  if (pastorAge > 0) {
+    if (pastorAge < 60) q3s++;
+    if (pastorAge < 65) q3s++;
+    if (pastorAge < 70) q3s++;
+    if (pastorAge < 75) q3s++;
+  }
+  s1 += q3s; setScore('q3score', q3s, 4);
+
+  // Q4: Congregation median age (same formula as pastor)
+  const congAge = num('q4');
+  let q4s = 0;
+  if (congAge > 0) {
+    if (congAge < 60) q4s++;
+    if (congAge < 65) q4s++;
+    if (congAge < 70) q4s++;
+    if (congAge < 75) q4s++;
+  }
+  s1 += q4s; setScore('q4score', q4s, 4);
+
+  // Q5: Attendance — scored relative to population & city type (q16 attendance/population ratio)
+  // This depends on city type multiplier — scored later in demographics context
+  const attendance = num('q5');
+  const population = num('q14');
+  const cityType = val('q13');
+  let cityMult = 0;
+  if (cityType === 'Rural (Under 8000)') cityMult = 0.1;
+  else if (cityType === 'Small city (8k-50k)') cityMult = 1;
+  else if (cityType === 'Large City (over 50k)') cityMult = 0.1;
+  else if (cityType === 'Urban/Metro (100k+)') cityMult = 0.1;
+
+  let q5s = 0;
+  if (cityMult > 0 && population > 0 && attendance > 0) {
+    const ratio = attendance / (population * cityMult);
+    if (ratio >= 0.01) q5s++;
+    if (ratio >= 0.05) q5s++;
+    if (ratio >= 0.10) q5s++;
+    if (ratio >= 0.15) q5s++;
+    if (ratio >= 0.25) q5s++;
+  }
+  s1 += q5s; setScore('q5score', q5s, 5);
+
+  // Q6: Attendance trend
+  let q6s = 0;
+  if (val('q6') === 'Static') q6s = 3;
+  else if (val('q6') === 'Increasing') q6s = 5;
+  s1 += q6s; setScore('q6score', q6s, 5);
+
+  // Q7: Church status
+  let q7s = 0;
+  if (val('q7') === 'General Council') q7s = 1;
+  else if (val('q7') === 'Parent Affiliated') q7s = 1;
+  s1 += q7s; setScore('q7score', q7s, 1);
+
+  // Q8: Finances trend
+  let q8s = 0;
+  if (val('q8') === 'Static') q8s = 3;
+  else if (val('q8') === 'Increasing') q8s = 5;
+  s1 += q8s; setScore('q8score', q8s, 5);
+
+  // Q9: Conversions (relative to attendance)
+  let q9s = 0;
+  const conversions = num('q9');
+  if (attendance > 0 && conversions > 0) {
+    if (conversions >= 0.01 * attendance) q9s++;
+    if (conversions >= 0.03 * attendance) q9s++;
+    if (conversions >= 0.05 * attendance) q9s++;
+    if (conversions >= 0.08 * attendance) q9s++;
+    if (conversions >= 0.10 * attendance) q9s++;
+  }
+  s1 += q9s; setScore('q9score', q9s, 5);
+
+  // Q10: Water baptisms (relative to conversions)
+  let q10s = 0;
+  const baptisms = num('q10');
+  if (conversions > 0 && baptisms > 0) {
+    if (baptisms >= 0.05 * conversions) q10s++;
+    if (baptisms >= 0.10 * conversions) q10s++;
+    if (baptisms >= 0.25 * conversions) q10s++;
+    if (baptisms >= 0.50 * conversions) q10s++;
+    if (baptisms >= 0.75 * conversions) q10s++;
+  }
+  s1 += q10s; setScore('q10score', q10s, 5);
+
+  // Q11: Spirit baptisms (relative to conversions)
+  let q11s = 0;
+  const spiritBap = num('q11');
+  if (conversions > 0 && spiritBap > 0) {
+    if (spiritBap >= 0.10 * conversions) q11s++;
+    if (spiritBap >= 0.15 * conversions) q11s++;
+    if (spiritBap >= 0.20 * conversions) q11s++;
+    if (spiritBap >= 0.25 * conversions) q11s++;
+    if (spiritBap >= 0.30 * conversions) q11s++;
+  }
+  s1 += q11s; setScore('q11score', q11s, 5);
+
+  // Q12: First-time guests (relative to attendance)
+  let q12s = 0;
+  const guests = num('q12');
+  if (attendance > 0 && guests > 0) {
+    if (guests >= 0.50 * attendance) q12s++;
+    if (guests >= 0.75 * attendance) q12s++;
+    if (guests >= 1.00 * attendance) q12s++;
+    if (guests >= 1.50 * attendance) q12s++;
+    if (guests >= 2.00 * attendance) q12s++;
+  }
+  s1 += q12s; setScore('q12score', q12s, 5);
+
+  // ── Section 2: Community Demographics ──
+  let s2 = 0;
+
+  // Q15: Population change
+  let q15s = 0;
+  if (val('q15') === 'Static') q15s = 1;
+  else if (val('q15') === 'Increasing') q15s = 3;
+  s2 += q15s; setScore('q15score', q15s, 3);
+
+  // Q16: Median resident age vs pastor & congregation
+  const medianResAge = num('q16');
+  const income = num('q17');
+
+  // Age gap: community vs pastor
+  let pastorAgeDiff = 0;
+  let congAgeDiff = 0;
+  if (medianResAge > 0 && pastorAge > 0) pastorAgeDiff = pastorAge - medianResAge;
+  if (medianResAge > 0 && congAge > 0) congAgeDiff = congAge - medianResAge;
+
+  // Q16 score: based on congregation age gap to community
+  let q16s = 0;
+  if (medianResAge > 0 && congAge > 0) {
+    if (congAgeDiff - 10 <= 1) q16s++;
+    if (congAgeDiff - 15 <= 1) q16s++;
+    if (congAgeDiff - 20 <= 1) q16s += 2;
+  }
+  s2 += q16s; setScore('q16score', q16s, 4);
+
+  // Q17 score: same logic for pastor
+  let q17s = 0;
+  if (medianResAge > 0 && pastorAge > 0) {
+    if (pastorAgeDiff - 10 <= 1) q17s++;
+    if (pastorAgeDiff - 15 <= 1) q17s++;
+    if (pastorAgeDiff - 20 <= 1) q17s += 2;
+  }
+  s2 += q17s; setScore('q17score', q17s, 4);
+
+  // Per capita giving score (row 46)
+  const totalIncome = num('q8b');
+  const perCapitaGiving = attendance > 0 ? totalIncome / attendance : 0;
+  const potentialPerCapita = income > 0 ? income * 0.1 : 0;
+  let q46s = 0;
+  if (income > 0) {
+    if (potentialPerCapita > 0) q46s++;
+    if (potentialPerCapita > 250) q46s++;
+    if (potentialPerCapita > 500) q46s++;
+    if (potentialPerCapita > 750) q46s++;
+    if (potentialPerCapita > 1000) q46s++;
+  }
+  s2 += q46s;
+
+  // ── Section 3: Church Subjective ──
+  let s3 = 0;
+
+  // Q18: Dominant family (No=2)
+  const q18s = val('q18') === 'No' ? 2 : 0;
+  s3 += q18s; setScore('q18score', q18s, 2);
+
+  // Q19: Facilities
+  let q19s = 0;
+  if (val('q19') === 'Static') q19s = 2;
+  else if (val('q19') === 'Increasing') q19s = 3;
+  s3 += q19s; setScore('q19score', q19s, 3);
+
+  // Q20: Strategic thinking
+  let q20s = 0;
+  if (val('q20') === 'Moderate') q20s = 1;
+  else if (val('q20') === 'Good') q20s = 2;
+  else if (val('q20') === 'Excellent') q20s = 3;
+  s3 += q20s; setScore('q20score', q20s, 3);
+
+  // Q21: Volunteer participation
+  let q21s = 0;
+  if (val('q21') === 'Moderate') q21s = 1;
+  else if (val('q21') === 'Good') q21s = 2;
+  else if (val('q21') === 'Excellent') q21s = 3;
+  s3 += q21s; setScore('q21score', q21s, 3);
+
+  // Q22: In denial (No=2)
+  const q22s = val('q22') === 'No' ? 2 : 0;
+  s3 += q22s; setScore('q22score', q22s, 2);
+
+  // Q23: Corporate prayer hours (relative to attendance)
+  let q23s = 0;
+  const prayerHrs = num('q23');
+  if (attendance > 0 && prayerHrs > 0) {
+    if (prayerHrs > 0.025 * attendance) q23s++;
+    if (prayerHrs > 0.05 * attendance) q23s++;
+    if (prayerHrs > 0.065 * attendance) q23s++;
+    if (prayerHrs > 0.085 * attendance) q23s++;
+    if (prayerHrs >= 0.095 * attendance) q23s++;
+    // Penalty for too much
+    if (prayerHrs > 0.15 * attendance) q23s--;
+    if (prayerHrs > 0.175 * attendance) q23s -= 3;
+    if (prayerHrs > 0.2 * attendance) q23s--;
+  }
+  s3 += Math.max(0, q23s); setScore('q23score', Math.max(0, q23s), 5);
+
+  // Q24: Active vision (Yes=1)
+  const q24s = val('q24') === 'Yes' ? 1 : 0;
+  s3 += q24s; setScore('q24score', q24s, 1);
+
+  // Q25: Effective leadership (Yes=2)
+  const q25s = val('q25') === 'Yes' ? 2 : 0;
+  s3 += q25s; setScore('q25score', q25s, 2);
+
+  // Q26: Same page (Yes=2)
+  const q26s = val('q26') === 'Yes' ? 2 : 0;
+  s3 += q26s; setScore('q26score', q26s, 2);
+
+  // Q27: Status quo (No=2, reversed)
+  const q27s = val('q27') === 'No' ? 2 : 0;
+  s3 += q27s; setScore('q27score', q27s, 2);
+
+  // Q28: Decor decade
+  let q28s = 0;
+  if (val('q28') === 'Current Decade') q28s = 3;
+  else if (val('q28') === 'Last Decade') q28s = 1;
+  s3 += q28s; setScore('q28score', q28s, 3);
+
+  // ── TOTALS ──
+  totalScore = s1 + s2 + s3;
+  const pct = Math.round((answered / totalQuestions) * 100);
+
+  // Update section scores
+  document.getElementById('section1Score').textContent = s1 + ' pts';
+  document.getElementById('section2Score').textContent = s2 + ' pts';
+  document.getElementById('section3Score').textContent = s3 + ' pts';
+
+  // Update overall display
+  document.getElementById('scoreNumber').textContent = totalScore;
+  document.getElementById('progressPct').textContent = pct + '%';
+
+  const progressFill = document.getElementById('progressFill');
+  progressFill.style.width = pct + '%';
+
+  const badge = document.getElementById('ratingBadge');
+  const explanation = document.getElementById('ratingExplanation');
+
+  if (pct < 50) {
+    badge.style.background = '#e8e5e0';
+    badge.style.color = 'var(--text-muted)';
+    badge.textContent = 'Incomplete';
+    progressFill.style.background = '#9ca3af';
+    explanation.style.display = 'none';
+  } else if (totalScore >= 76) {
+    badge.style.background = 'var(--green-bg)';
+    badge.style.color = 'var(--green)';
+    badge.style.border = '2px solid var(--green)';
+    badge.textContent = 'GREEN';
+    progressFill.style.background = 'var(--green)';
+    explanation.className = 'rating-explanation green';
+    explanation.innerHTML = '<strong>GREEN (76-100):</strong> This church is healthy enough to continue without critical care. Concerns normally require fewer external resources and less intensive expertise.';
+    explanation.style.display = 'block';
+  } else if (totalScore >= 60) {
+    badge.style.background = 'var(--yellow-bg)';
+    badge.style.color = 'var(--yellow)';
+    badge.style.border = '2px solid var(--yellow)';
+    badge.textContent = 'YELLOW';
+    progressFill.style.background = 'var(--yellow)';
+    explanation.className = 'rating-explanation yellow';
+    explanation.innerHTML = '<strong>YELLOW (60-75):</strong> This church exists between critical and minimal care needs. These are often the best opportunities for denominations and consultants to gain traction for their resource investment.';
+    explanation.style.display = 'block';
+  } else {
+    badge.style.background = 'var(--red-bg)';
+    badge.style.color = 'var(--red)';
+    badge.style.border = '2px solid var(--red)';
+    badge.textContent = 'RED';
+    progressFill.style.background = 'var(--red)';
+    explanation.className = 'rating-explanation red';
+    explanation.innerHTML = '<strong>RED (below 60):</strong> This church is likely to require high levels of external resources, intense involvement, and higher expertise to recover. Radical shifts may be required to position for recovery.';
+    explanation.style.display = 'block';
+  }
+
+  // Update findings
+  document.getElementById('perCapita').textContent = perCapitaGiving > 0 ? '$' + Math.round(perCapitaGiving).toLocaleString() : '$0';
+  document.getElementById('potentialPerCapita').textContent = potentialPerCapita > 0 ? '$' + Math.round(potentialPerCapita).toLocaleString() : '$0';
+  document.getElementById('givingDiff').textContent = (perCapitaGiving > 0 && potentialPerCapita > 0)
+    ? '$' + Math.round(perCapitaGiving - potentialPerCapita).toLocaleString()
+    : '$0';
+  document.getElementById('ageDiffPastor').textContent = (pastorAge > 0 && medianResAge > 0)
+    ? (pastorAgeDiff > 0 ? '+' : '') + pastorAgeDiff + ' years'
+    : '--';
+  document.getElementById('ageDiffCong').textContent = (congAge > 0 && medianResAge > 0)
+    ? (congAgeDiff > 0 ? '+' : '') + congAgeDiff + ' years'
+    : '--';
+}
+
+// Init date
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('pin1').focus();
+});
+</script>
+
+</body>
+</html>
