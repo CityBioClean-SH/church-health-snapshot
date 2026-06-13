@@ -1105,11 +1105,225 @@
     background: var(--bg);
   }
 
+  /* Section notes textarea */
+  .section-notes {
+    padding: 12px 28px 16px;
+    border-top: 1px solid #f2efe9;
+    background: #fdfcfa;
+  }
+
+  .section-notes label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+
+  .section-notes textarea {
+    width: 100%;
+    min-height: 72px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text);
+    background: white;
+    outline: none;
+    resize: vertical;
+    transition: border-color 0.2s;
+  }
+
+  .section-notes textarea:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px var(--gold-dim);
+  }
+
+  .section-notes textarea::placeholder {
+    color: var(--text-faint);
+  }
+
+  /* Auto-save toast */
+  .save-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--navy);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.3s var(--ease);
+    z-index: 200;
+    pointer-events: none;
+  }
+
+  .save-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Radar chart */
+  .radar-wrap {
+    padding: 32px 28px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .radar-wrap h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 20px;
+  }
+
+  .radar-svg {
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  /* Strength/weakness pills */
+  .sw-section {
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sw-section h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 12px;
+  }
+
+  .sw-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+  }
+
+  .sw-bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-warm);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .sw-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s var(--ease);
+  }
+
+  .sw-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 100px;
+  }
+
+  .sw-pct {
+    font-size: 13px;
+    font-weight: 700;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  /* Recommendations */
+  .recs-section {
+    padding: 24px 28px;
+  }
+
+  .recs-section h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 14px;
+  }
+
+  .rec-card {
+    display: flex;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--bg);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--gold);
+  }
+
+  .rec-card:last-child { margin-bottom: 0; }
+
+  .rec-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--gold-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+
+  .rec-body {
+    flex: 1;
+  }
+
+  .rec-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 2px;
+  }
+
+  .rec-desc {
+    font-size: 13px;
+    color: var(--text-soft);
+    line-height: 1.5;
+  }
+
+  /* Report notes display */
+  .report-notes {
+    padding: 12px 24px;
+    background: #fdfcfa;
+    border-top: 1px solid #f2efe9;
+  }
+
+  .report-notes-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-faint);
+    margin-bottom: 4px;
+  }
+
+  .report-notes-text {
+    font-size: 13px;
+    color: var(--text-soft);
+    font-style: italic;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+
   @media print {
-    .app-header, .progress-strip, .report-actions, .btn-back { display: none !important; }
+    .app-header, .progress-strip, .report-actions, .btn-back, .save-toast { display: none !important; }
     .report-screen { display: block !important; }
     .report-wrap { padding: 0; }
-    .report-section, .report-top { box-shadow: none; border: 1px solid #ddd; }
+    .report-section, .report-top { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+    .radar-wrap { break-inside: avoid; }
     body { background: white; }
   }
 
@@ -1376,6 +1590,10 @@
           <div class="q-text">How many first time guests attended last year?</div>
           <div class="q-input"><input type="number" id="q12" placeholder="Count" min="0" oninput="calculate()"></div>
         </div>
+        <div class="section-notes">
+          <label>Notes &amp; Observations</label>
+          <textarea id="notes1" placeholder="Add any context or observations about the church's statistics..." oninput="autoSave()"></textarea>
+        </div>
       </div>
     </div>
 
@@ -1413,6 +1631,10 @@
           <div class="q-num">18</div>
           <div class="q-text">Estimated Per Capita Income</div>
           <div class="q-input"><input type="number" id="q17" placeholder="$ Income" min="0" oninput="calculate()"></div>
+        </div>
+        <div class="section-notes">
+          <label>Notes &amp; Observations</label>
+          <textarea id="notes2" placeholder="Add any context about the community demographics..." oninput="autoSave()"></textarea>
         </div>
       </div>
     </div>
@@ -1480,6 +1702,10 @@
           <div class="q-num">29</div>
           <div class="q-text">What decade does the church decor represent?</div>
           <div class="q-input"><div class="radio-group"><input type="radio" name="q28" id="q28_c" value="Current Decade" onchange="calculate()"><label for="q28_c">Current</label><input type="radio" name="q28" id="q28_l" value="Last Decade" onchange="calculate()"><label for="q28_l">Last Decade</label><input type="radio" name="q28" id="q28_t" value="Two Decades or More Past" onchange="calculate()"><label for="q28_t">Two+ Decades</label></div></div>
+        </div>
+        <div class="section-notes">
+          <label>Notes &amp; Observations</label>
+          <textarea id="notes3" placeholder="Add any subjective observations, follow-up items, or context..." oninput="autoSave()"></textarea>
         </div>
       </div>
     </div>
@@ -1551,6 +1777,8 @@
 
   </div>
 
+  <div class="save-toast" id="saveToast">Progress saved</div>
+
   <div class="action-bar">
     <button class="btn btn-ghost" onclick="alert('Save draft — coming with backend')">Save Draft</button>
     <button class="btn btn-primary" onclick="showReport()">Submit Assessment</button>
@@ -1604,6 +1832,24 @@
         </div>
       </div>
 
+      <!-- Radar Chart & Analysis -->
+      <div class="report-section">
+        <div class="report-section-head">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <h3>Health Profile</h3>
+        </div>
+        <div class="radar-wrap">
+          <h3>Category Breakdown</h3>
+          <svg id="radarChart" class="radar-svg" viewBox="0 0 300 280"></svg>
+        </div>
+        <div class="sw-section" id="swSection">
+          <h3>Strengths &amp; Areas for Growth</h3>
+        </div>
+        <div class="recs-section" id="recsSection">
+          <h3>Recommended Focus Areas</h3>
+        </div>
+      </div>
+
       <!-- Responses: Section 1 -->
       <div class="report-section">
         <div class="report-section-head">
@@ -1611,6 +1857,7 @@
           <h3>Church Statistical Information</h3>
         </div>
         <div class="report-answers" id="rptSection1"></div>
+        <div class="report-notes" id="rptNotes1" style="display:none;"><div class="report-notes-label">Assessor Notes</div><div class="report-notes-text" id="rptNotes1Text"></div></div>
       </div>
 
       <!-- Responses: Section 2 -->
@@ -1620,6 +1867,7 @@
           <h3>Community Demographics</h3>
         </div>
         <div class="report-answers" id="rptSection2"></div>
+        <div class="report-notes" id="rptNotes2" style="display:none;"><div class="report-notes-label">Assessor Notes</div><div class="report-notes-text" id="rptNotes2Text"></div></div>
       </div>
 
       <!-- Responses: Section 3 -->
@@ -1629,6 +1877,7 @@
           <h3>Church Subjective Information</h3>
         </div>
         <div class="report-answers" id="rptSection3"></div>
+        <div class="report-notes" id="rptNotes3" style="display:none;"><div class="report-notes-label">Assessor Notes</div><div class="report-notes-text" id="rptNotes3Text"></div></div>
       </div>
 
       <!-- Findings -->
@@ -2133,7 +2382,313 @@ function hideReport() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-document.addEventListener('DOMContentLoaded', () => { document.getElementById('pin1').focus(); });
+// ── AUTO-SAVE ──
+let saveTimer = null;
+function autoSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const data = {};
+    ALL_Q.forEach(id => {
+      if (RADIO_Q.includes(id)) {
+        const c = document.querySelector('input[name="' + id + '"]:checked');
+        if (c) data[id] = c.value;
+      } else {
+        const el = document.getElementById(id);
+        if (el && el.value) data[id] = el.value;
+      }
+    });
+    data.churchName = document.getElementById('churchName').value;
+    data.pastorName = document.getElementById('pastorName').value;
+    data.notes1 = document.getElementById('notes1').value;
+    data.notes2 = document.getElementById('notes2').value;
+    data.notes3 = document.getElementById('notes3').value;
+    localStorage.setItem('chs_draft', JSON.stringify(data));
+    const toast = document.getElementById('saveToast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1800);
+  }, 1000);
+}
+
+function restoreSave() {
+  const raw = localStorage.getItem('chs_draft');
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    ALL_Q.forEach(id => {
+      if (!data[id]) return;
+      if (RADIO_Q.includes(id)) {
+        const radio = document.querySelector('input[name="' + id + '"][value="' + data[id] + '"]');
+        if (radio) radio.checked = true;
+      } else {
+        const el = document.getElementById(id);
+        if (el) el.value = data[id];
+      }
+    });
+    if (data.churchName) document.getElementById('churchName').value = data.churchName;
+    if (data.pastorName) document.getElementById('pastorName').value = data.pastorName;
+    if (data.notes1) document.getElementById('notes1').value = data.notes1;
+    if (data.notes2) document.getElementById('notes2').value = data.notes2;
+    if (data.notes3) document.getElementById('notes3').value = data.notes3;
+    calculate();
+  } catch(e) {}
+}
+
+// Hook auto-save into all inputs
+document.querySelectorAll('.q-input input, .q-input select').forEach(el => {
+  el.addEventListener('change', autoSave);
+  el.addEventListener('input', autoSave);
+});
+document.querySelectorAll('.radio-group input[type="radio"]').forEach(el => {
+  el.addEventListener('change', autoSave);
+});
+document.getElementById('churchName').addEventListener('input', autoSave);
+document.getElementById('pastorName').addEventListener('input', autoSave);
+
+// ── CATEGORY SCORING (for radar chart) ──
+// 5 categories based on the spreadsheet's column I indicators
+const CATEGORIES = {
+  'Leadership': { max: 20, color: '#2563eb',
+    calc: function(v,n) {
+      let s = 0;
+      // finances trend, facilities, strategic thinking, volunteer, denial, vision, effective leadership, same page, status quo, decor
+      if (v('q8')==='Static') s+=3; else if (v('q8')==='Increasing') s+=5; // max 5
+      if (v('q19')==='Static') s+=2; else if (v('q19')==='Increasing') s+=3; // max 3
+      if (v('q20')==='Moderate') s+=1; else if (v('q20')==='Good') s+=2; else if (v('q20')==='Excellent') s+=3;
+      if (v('q22')==='No') s+=2;
+      if (v('q24')==='Yes') s+=1;
+      if (v('q25')==='Yes') s+=2;
+      if (v('q26')==='Yes') s+=2;
+      if (v('q27')==='No') s+=2;
+      return s;
+    }
+  },
+  'Discipleship': { max: 17, color: '#7c3aed',
+    calc: function(v,n) {
+      let s = 0;
+      if (v('q1')==='Yes') s+=4; // children
+      if (v('q2')==='Yes') s+=4; // youth
+      const conv = n('q9'), bap = n('q10'), att = n('q5');
+      if (conv > 0 && bap > 0) { [0.05,0.10,0.25,0.50,0.75].forEach(t => { if (bap >= t*conv) s++; }); }
+      if (v('q21')==='Moderate') s+=1; else if (v('q21')==='Good') s+=2; else if (v('q21')==='Excellent') s+=3;
+      return s;
+    }
+  },
+  'Outreach': { max: 18, color: '#059669',
+    calc: function(v,n) {
+      let s = 0;
+      const att = n('q5'), conv = n('q9'), guests = n('q12');
+      if (att > 0 && conv > 0) { [0.01,0.03,0.05,0.08,0.10].forEach(t => { if (conv >= t*att) s++; }); }
+      if (att > 0 && guests > 0) { [0.50,0.75,1.00,1.50,2.00].forEach(t => { if (guests >= t*att) s++; }); }
+      const pa = n('q3');
+      if (pa > 0) { [60,65,70,75].forEach(t => { if (pa < t) s++; }); }
+      return s;
+    }
+  },
+  'Spiritual': { max: 10, color: '#dc2626',
+    calc: function(v,n) {
+      let s = 0;
+      const conv = n('q9'), sb = n('q11'), att = n('q5'), ph = n('q23');
+      if (conv > 0 && sb > 0) { [0.10,0.15,0.20,0.25,0.30].forEach(t => { if (sb >= t*conv) s++; }); }
+      if (att > 0 && ph > 0) {
+        [0.025,0.05,0.065,0.085].forEach(t => { if (ph > t*att) s++; });
+        if (ph >= 0.095*att) s++;
+      }
+      return s;
+    }
+  },
+  'Community': { max: 16, color: '#d97706',
+    calc: function(v,n) {
+      let s = 0;
+      if (v('q15')==='Static') s+=1; else if (v('q15')==='Increasing') s+=3;
+      if (v('q6')==='Static') s+=3; else if (v('q6')==='Increasing') s+=5;
+      const ca = n('q4');
+      if (ca > 0) { [60,65,70,75].forEach(t => { if (ca < t) s++; }); }
+      if (v('q18')==='No') s+=2;
+      if (v('q28')==='Current Decade') s+=2; else if (v('q28')==='Last Decade') s+=1;
+      return s;
+    }
+  }
+};
+
+function getCategoryScores() {
+  const v = id => {
+    if (RADIO_Q.includes(id)) {
+      const c = document.querySelector('input[name="' + id + '"]:checked');
+      return c ? c.value : '';
+    }
+    return document.getElementById(id).value;
+  };
+  const n = id => { const x = parseFloat(v(id)); return isNaN(x) ? 0 : x; };
+  const scores = {};
+  for (const [name, cat] of Object.entries(CATEGORIES)) {
+    const raw = cat.calc(v, n);
+    scores[name] = { raw, max: cat.max, pct: cat.max > 0 ? Math.round((raw / cat.max) * 100) : 0, color: cat.color };
+  }
+  return scores;
+}
+
+// ── RADAR CHART (SVG) ──
+function drawRadar(scores) {
+  const cats = Object.entries(scores);
+  const n = cats.length;
+  const cx = 150, cy = 135, maxR = 110;
+  const angleStep = (2 * Math.PI) / n;
+  const startAngle = -Math.PI / 2;
+
+  let svg = '';
+
+  // Grid rings
+  [0.25, 0.5, 0.75, 1.0].forEach(ring => {
+    const r = maxR * ring;
+    let pts = [];
+    for (let i = 0; i < n; i++) {
+      const angle = startAngle + i * angleStep;
+      pts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
+    }
+    svg += `<polygon points="${pts.join(' ')}" fill="none" stroke="#e5e1d8" stroke-width="1" opacity="0.6"/>`;
+  });
+
+  // Axis lines
+  for (let i = 0; i < n; i++) {
+    const angle = startAngle + i * angleStep;
+    const x2 = cx + maxR * Math.cos(angle);
+    const y2 = cy + maxR * Math.sin(angle);
+    svg += `<line x1="${cx}" y1="${cy}" x2="${x2}" y2="${y2}" stroke="#e5e1d8" stroke-width="1"/>`;
+  }
+
+  // Data polygon
+  let dataPts = [];
+  cats.forEach(([name, s], i) => {
+    const angle = startAngle + i * angleStep;
+    const r = maxR * (s.pct / 100);
+    dataPts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
+  });
+  svg += `<polygon points="${dataPts.join(' ')}" fill="rgba(27,37,65,0.12)" stroke="var(--navy)" stroke-width="2.5"/>`;
+
+  // Data points & labels
+  cats.forEach(([name, s], i) => {
+    const angle = startAngle + i * angleStep;
+    const r = maxR * (s.pct / 100);
+    const px = cx + r * Math.cos(angle);
+    const py = cy + r * Math.sin(angle);
+    svg += `<circle cx="${px}" cy="${py}" r="5" fill="${s.color}" stroke="white" stroke-width="2"/>`;
+
+    // Labels
+    const lx = cx + (maxR + 22) * Math.cos(angle);
+    const ly = cy + (maxR + 22) * Math.sin(angle);
+    const anchor = Math.abs(Math.cos(angle)) < 0.1 ? 'middle' : Math.cos(angle) > 0 ? 'start' : 'end';
+    svg += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" dominant-baseline="middle" font-family="DM Sans" font-size="11" font-weight="600" fill="#1f2937">${name}</text>`;
+    svg += `<text x="${lx}" y="${ly + 14}" text-anchor="${anchor}" dominant-baseline="middle" font-family="DM Sans" font-size="10" fill="#9ca3af">${s.pct}%</text>`;
+  });
+
+  document.getElementById('radarChart').innerHTML = svg;
+}
+
+// ── STRENGTH/WEAKNESS BARS ──
+function renderStrengthWeakness(scores) {
+  const sorted = Object.entries(scores).sort((a, b) => b[1].pct - a[1].pct);
+  let html = '';
+  sorted.forEach(([name, s]) => {
+    const barColor = s.pct >= 70 ? 'var(--green)' : s.pct >= 40 ? 'var(--yellow)' : 'var(--red)';
+    const pctColor = s.pct >= 70 ? 'var(--green)' : s.pct >= 40 ? 'var(--yellow)' : 'var(--red)';
+    html += `<div class="sw-row">
+      <span class="sw-label">${name}</span>
+      <div class="sw-bar-track"><div class="sw-bar-fill" style="width:${s.pct}%;background:${barColor}"></div></div>
+      <span class="sw-pct" style="color:${pctColor}">${s.pct}%</span>
+    </div>`;
+  });
+  document.getElementById('swSection').innerHTML = '<h3>Strengths &amp; Areas for Growth</h3>' + html;
+}
+
+// ── RECOMMENDATIONS ──
+const REC_DB = {
+  'Leadership': {
+    icon: '&#9733;',
+    title: 'Strengthen Leadership Development',
+    desc: 'Consider implementing a leadership pipeline program. Focus on vision casting, strategic planning retreats, and developing the next generation of church leaders.'
+  },
+  'Discipleship': {
+    icon: '&#9829;',
+    title: 'Invest in Discipleship Pathways',
+    desc: 'Build clear pathways from first-time guest to fully engaged member. Focus on children/youth ministry development and volunteer mobilization training.'
+  },
+  'Outreach': {
+    icon: '&#10148;',
+    title: 'Expand Outreach & Evangelism',
+    desc: 'Develop intentional outreach strategies for the surrounding community. Consider community service events, guest-focused services, and follow-up systems for new visitors.'
+  },
+  'Spiritual': {
+    icon: '&#10016;',
+    title: 'Deepen Spiritual Vitality',
+    desc: 'Prioritize corporate prayer, Spirit-led worship, and spiritual formation. Consider prayer initiatives, revival services, or spiritual growth campaigns.'
+  },
+  'Community': {
+    icon: '&#9962;',
+    title: 'Improve Community Connection',
+    desc: 'Focus on bridging the gap between the church and its surrounding community. Update facilities, address demographic alignment, and reduce insider culture.'
+  }
+};
+
+function renderRecommendations(scores) {
+  const weak = Object.entries(scores)
+    .filter(([_, s]) => s.pct < 60)
+    .sort((a, b) => a[1].pct - b[1].pct);
+
+  if (weak.length === 0) {
+    document.getElementById('recsSection').innerHTML = '<h3>Recommended Focus Areas</h3><p style="color:var(--text-soft);font-size:14px;">All categories are performing well. Continue current strategies and monitor for any emerging trends.</p>';
+    return;
+  }
+
+  let html = '<h3>Recommended Focus Areas</h3>';
+  weak.forEach(([name, s]) => {
+    const rec = REC_DB[name];
+    html += `<div class="rec-card">
+      <div class="rec-icon">${rec.icon}</div>
+      <div class="rec-body">
+        <div class="rec-title">${rec.title}</div>
+        <div class="rec-desc">${rec.desc}</div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('recsSection').innerHTML = html;
+}
+
+// ── PATCH showReport to include new features ──
+const origShowReport = showReport;
+showReport = function() {
+  origShowReport();
+
+  // Radar chart + analysis
+  const scores = getCategoryScores();
+  drawRadar(scores);
+  renderStrengthWeakness(scores);
+  renderRecommendations(scores);
+
+  // Notes
+  [1,2,3].forEach(i => {
+    const note = document.getElementById('notes' + i).value.trim();
+    const el = document.getElementById('rptNotes' + i);
+    const textEl = document.getElementById('rptNotes' + i + 'Text');
+    if (note) {
+      textEl.textContent = note;
+      el.style.display = 'block';
+    } else {
+      el.style.display = 'none';
+    }
+  });
+};
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('pin1').focus();
+});
+
+// Restore saved data after login
+const origLoginAs = loginAs;
+loginAs = function(user) {
+  origLoginAs(user);
+  restoreSave();
+};
 </script>
 </body>
 </html>
