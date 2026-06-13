@@ -596,7 +596,6 @@
     min-width: 190px;
   }
 
-  .q-input select,
   .q-input input[type="number"],
   .q-input input[type="text"] {
     width: 100%;
@@ -613,15 +612,6 @@
     -webkit-appearance: none;
   }
 
-  .q-input select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%236b7280' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    padding-right: 36px;
-    cursor: pointer;
-  }
-
-  .q-input select:focus,
   .q-input input:focus {
     border-color: var(--gold);
     background: white;
@@ -629,6 +619,48 @@
   }
 
   .q-input input[type="number"] { text-align: right; }
+
+  /* Radio button groups */
+  .radio-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .radio-group label {
+    display: block;
+    padding: 8px 16px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all 0.2s var(--ease);
+    background: var(--bg);
+    text-align: center;
+    user-select: none;
+    line-height: 1.3;
+  }
+
+  .radio-group label:hover {
+    border-color: var(--slate);
+    color: var(--text);
+    background: white;
+  }
+
+  .radio-group input[type="radio"] {
+    display: none;
+  }
+
+  .radio-group input[type="radio"]:checked + label {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(27,37,65,0.18);
+  }
 
   .q-note {
     padding: 12px 28px 12px 72px;
@@ -1152,6 +1184,8 @@
     .church-header { grid-template-columns: 1fr; }
     .q-row { flex-wrap: wrap; gap: 10px; }
     .q-input { min-width: 100%; }
+    .radio-group { width: 100%; }
+    .radio-group label { flex: 1; min-width: 0; }
     .header-actions .user-name { display: none; }
     .gauge-wrap { width: 150px; height: 150px; }
     .gauge-svg { width: 150px; height: 150px; }
@@ -1280,12 +1314,12 @@
         <div class="q-row" data-q="q1">
           <div class="q-num">1</div>
           <div class="q-text">Does the church have an active children's ministry?</div>
-          <div class="q-input"><select id="q1" onchange="calculate()"><option value="">Select One</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q1" id="q1_yes" value="Yes" onchange="calculate()"><label for="q1_yes">Yes</label><input type="radio" name="q1" id="q1_no" value="No" onchange="calculate()"><label for="q1_no">No</label></div></div>
         </div>
         <div class="q-row" data-q="q2">
           <div class="q-num">2</div>
           <div class="q-text">Does the church have an active youth ministry?</div>
-          <div class="q-input"><select id="q2" onchange="calculate()"><option value="">Select One</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q2" id="q2_yes" value="Yes" onchange="calculate()"><label for="q2_yes">Yes</label><input type="radio" name="q2" id="q2_no" value="No" onchange="calculate()"><label for="q2_no">No</label></div></div>
         </div>
         <div class="q-row" data-q="q3">
           <div class="q-num">3</div>
@@ -1305,17 +1339,17 @@
         <div class="q-row" data-q="q6">
           <div class="q-num">6</div>
           <div class="q-text">Is the attendance over the last three years trending...</div>
-          <div class="q-input"><select id="q6" onchange="calculate()"><option value="">Select One</option><option value="Declining">Declining</option><option value="Static">Static</option><option value="Increasing">Increasing</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q6" id="q6_d" value="Declining" onchange="calculate()"><label for="q6_d">Declining</label><input type="radio" name="q6" id="q6_s" value="Static" onchange="calculate()"><label for="q6_s">Static</label><input type="radio" name="q6" id="q6_i" value="Increasing" onchange="calculate()"><label for="q6_i">Increasing</label></div></div>
         </div>
         <div class="q-row" data-q="q7">
           <div class="q-num">7</div>
           <div class="q-text">What is the church's status?</div>
-          <div class="q-input"><select id="q7" onchange="calculate()"><option value="">Select One</option><option value="General Council">General Council</option><option value="District Affiliated">District Affiliated</option><option value="Parent Affiliated">Parent Affiliated</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q7" id="q7_gc" value="General Council" onchange="calculate()"><label for="q7_gc">General Council</label><input type="radio" name="q7" id="q7_da" value="District Affiliated" onchange="calculate()"><label for="q7_da">District Affiliated</label><input type="radio" name="q7" id="q7_pa" value="Parent Affiliated" onchange="calculate()"><label for="q7_pa">Parent Affiliated</label></div></div>
         </div>
         <div class="q-row" data-q="q8">
           <div class="q-num">8</div>
           <div class="q-text">Are the church's finances...</div>
-          <div class="q-input"><select id="q8" onchange="calculate()"><option value="">Select One</option><option value="Declining">Declining</option><option value="Static">Static</option><option value="Increasing">Increasing</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q8" id="q8_d" value="Declining" onchange="calculate()"><label for="q8_d">Declining</label><input type="radio" name="q8" id="q8_s" value="Static" onchange="calculate()"><label for="q8_s">Static</label><input type="radio" name="q8" id="q8_i" value="Increasing" onchange="calculate()"><label for="q8_i">Increasing</label></div></div>
         </div>
         <div class="q-row" data-q="q8b">
           <div class="q-num">9</div>
@@ -1358,7 +1392,7 @@
         <div class="q-row" data-q="q13">
           <div class="q-num">14</div>
           <div class="q-text">What type of city is the church in?</div>
-          <div class="q-input"><select id="q13" onchange="calculate()"><option value="">Select One</option><option value="Rural (Under 8000)">Rural (Under 8,000)</option><option value="Small city (8k-50k)">Small City (8k-50k)</option><option value="Large City (over 50k)">Large City (over 50k)</option><option value="Urban/Metro (100k+)">Urban/Metro (100k+)</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q13" id="q13_r" value="Rural (Under 8000)" onchange="calculate()"><label for="q13_r">Rural (&lt;8k)</label><input type="radio" name="q13" id="q13_s" value="Small city (8k-50k)" onchange="calculate()"><label for="q13_s">Small (8k-50k)</label><input type="radio" name="q13" id="q13_l" value="Large City (over 50k)" onchange="calculate()"><label for="q13_l">Large (50k+)</label><input type="radio" name="q13" id="q13_u" value="Urban/Metro (100k+)" onchange="calculate()"><label for="q13_u">Metro (100k+)</label></div></div>
         </div>
         <div class="q-row" data-q="q14">
           <div class="q-num">15</div>
@@ -1368,7 +1402,7 @@
         <div class="q-row" data-q="q15">
           <div class="q-num">16</div>
           <div class="q-text">Population change</div>
-          <div class="q-input"><select id="q15" onchange="calculate()"><option value="">Select One</option><option value="Declining">Declining</option><option value="Static">Static</option><option value="Increasing">Increasing</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q15" id="q15_d" value="Declining" onchange="calculate()"><label for="q15_d">Declining</label><input type="radio" name="q15" id="q15_s" value="Static" onchange="calculate()"><label for="q15_s">Static</label><input type="radio" name="q15" id="q15_i" value="Increasing" onchange="calculate()"><label for="q15_i">Increasing</label></div></div>
         </div>
         <div class="q-row" data-q="q16">
           <div class="q-num">17</div>
@@ -1395,27 +1429,27 @@
         <div class="q-row" data-q="q18">
           <div class="q-num">19</div>
           <div class="q-text">Does the church have a dominant family?</div>
-          <div class="q-input"><select id="q18" onchange="calculate()"><option value="">Select One</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q18" id="q18_yes" value="Yes" onchange="calculate()"><label for="q18_yes">Yes</label><input type="radio" name="q18" id="q18_no" value="No" onchange="calculate()"><label for="q18_no">No</label></div></div>
         </div>
         <div class="q-row" data-q="q19">
           <div class="q-num">20</div>
           <div class="q-text">Are the facilities in appearance, function, etc...</div>
-          <div class="q-input"><select id="q19" onchange="calculate()"><option value="">Select One</option><option value="Declining">Declining</option><option value="Static">Static</option><option value="Increasing">Increasing</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q19" id="q19_d" value="Declining" onchange="calculate()"><label for="q19_d">Declining</label><input type="radio" name="q19" id="q19_s" value="Static" onchange="calculate()"><label for="q19_s">Static</label><input type="radio" name="q19" id="q19_i" value="Increasing" onchange="calculate()"><label for="q19_i">Increasing</label></div></div>
         </div>
         <div class="q-row" data-q="q20">
           <div class="q-num">21</div>
           <div class="q-text">How would you rate the strategic thinking of the leadership?</div>
-          <div class="q-input"><select id="q20" onchange="calculate()"><option value="">Select One</option><option value="Poor">Poor</option><option value="Moderate">Moderate</option><option value="Good">Good</option><option value="Excellent">Excellent</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q20" id="q20_p" value="Poor" onchange="calculate()"><label for="q20_p">Poor</label><input type="radio" name="q20" id="q20_m" value="Moderate" onchange="calculate()"><label for="q20_m">Moderate</label><input type="radio" name="q20" id="q20_g" value="Good" onchange="calculate()"><label for="q20_g">Good</label><input type="radio" name="q20" id="q20_e" value="Excellent" onchange="calculate()"><label for="q20_e">Excellent</label></div></div>
         </div>
         <div class="q-row" data-q="q21">
           <div class="q-num">22</div>
           <div class="q-text">How would you rate the volunteer participation?</div>
-          <div class="q-input"><select id="q21" onchange="calculate()"><option value="">Select One</option><option value="Poor">Poor</option><option value="Moderate">Moderate</option><option value="Good">Good</option><option value="Excellent">Excellent</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q21" id="q21_p" value="Poor" onchange="calculate()"><label for="q21_p">Poor</label><input type="radio" name="q21" id="q21_m" value="Moderate" onchange="calculate()"><label for="q21_m">Moderate</label><input type="radio" name="q21" id="q21_g" value="Good" onchange="calculate()"><label for="q21_g">Good</label><input type="radio" name="q21" id="q21_e" value="Excellent" onchange="calculate()"><label for="q21_e">Excellent</label></div></div>
         </div>
         <div class="q-row" data-q="q22">
           <div class="q-num">23</div>
           <div class="q-text">Is the leader/congregation in denial regarding challenges?</div>
-          <div class="q-input"><select id="q22" onchange="calculate()"><option value="">Select One</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q22" id="q22_yes" value="Yes" onchange="calculate()"><label for="q22_yes">Yes</label><input type="radio" name="q22" id="q22_no" value="No" onchange="calculate()"><label for="q22_no">No</label></div></div>
         </div>
         <div class="q-row" data-q="q23">
           <div class="q-num">24</div>
@@ -1425,27 +1459,27 @@
         <div class="q-row" data-q="q24">
           <div class="q-num">25</div>
           <div class="q-text">Does an active vision exist within the church?</div>
-          <div class="q-input"><select id="q24" onchange="calculate()"><option value="">Select One</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q24" id="q24_yes" value="Yes" onchange="calculate()"><label for="q24_yes">Yes</label><input type="radio" name="q24" id="q24_no" value="No" onchange="calculate()"><label for="q24_no">No</label></div></div>
         </div>
         <div class="q-row" data-q="q25">
           <div class="q-num">26</div>
           <div class="q-text">Is the current pastor/team exercising effective leadership?</div>
-          <div class="q-input"><select id="q25" onchange="calculate()"><option value="">Select One</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q25" id="q25_yes" value="Yes" onchange="calculate()"><label for="q25_yes">Yes</label><input type="radio" name="q25" id="q25_no" value="No" onchange="calculate()"><label for="q25_no">No</label></div></div>
         </div>
         <div class="q-row" data-q="q26">
           <div class="q-num">27</div>
           <div class="q-text">Are the pastor and congregation "on the same page?"</div>
-          <div class="q-input"><select id="q26" onchange="calculate()"><option value="">Select One</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q26" id="q26_yes" value="Yes" onchange="calculate()"><label for="q26_yes">Yes</label><input type="radio" name="q26" id="q26_no" value="No" onchange="calculate()"><label for="q26_no">No</label></div></div>
         </div>
         <div class="q-row" data-q="q27">
           <div class="q-num">28</div>
           <div class="q-text">Does the congregation express a strong desire to maintain the "Status Quo?"</div>
-          <div class="q-input"><select id="q27" onchange="calculate()"><option value="">Select One</option><option value="Yes">Yes</option><option value="No">No</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q27" id="q27_yes" value="Yes" onchange="calculate()"><label for="q27_yes">Yes</label><input type="radio" name="q27" id="q27_no" value="No" onchange="calculate()"><label for="q27_no">No</label></div></div>
         </div>
         <div class="q-row" data-q="q28">
           <div class="q-num">29</div>
           <div class="q-text">What decade does the church decor represent?</div>
-          <div class="q-input"><select id="q28" onchange="calculate()"><option value="">Select One</option><option value="Current Decade">Current Decade</option><option value="Last Decade">Last Decade</option><option value="Two Decades or More Past">Two Decades or More</option></select></div>
+          <div class="q-input"><div class="radio-group"><input type="radio" name="q28" id="q28_c" value="Current Decade" onchange="calculate()"><label for="q28_c">Current</label><input type="radio" name="q28" id="q28_l" value="Last Decade" onchange="calculate()"><label for="q28_l">Last Decade</label><input type="radio" name="q28" id="q28_t" value="Two Decades or More Past" onchange="calculate()"><label for="q28_t">Two+ Decades</label></div></div>
         </div>
       </div>
     </div>
@@ -1701,12 +1735,19 @@ function toggleSection(id) { document.getElementById(id).classList.toggle('colla
 
 // ── SCORING ──
 const ALL_Q = ['q1','q2','q3','q4','q5','q6','q7','q8','q8b','q9','q10','q11','q12','q13','q14','q15','q16','q17','q18','q19','q20','q21','q22','q23','q24','q25','q26','q27','q28'];
+const RADIO_Q = ['q1','q2','q6','q7','q8','q13','q15','q18','q19','q20','q21','q22','q24','q25','q26','q27','q28'];
 const S1_Q = ['q1','q2','q3','q4','q5','q6','q7','q8','q8b','q9','q10','q11','q12'];
 const S2_Q = ['q13','q14','q15','q16','q17'];
 const S3_Q = ['q18','q19','q20','q21','q22','q23','q24','q25','q26','q27','q28'];
 
 function calculate() {
-  const val = id => document.getElementById(id).value;
+  const val = id => {
+    if (RADIO_Q.includes(id)) {
+      const checked = document.querySelector('input[name="' + id + '"]:checked');
+      return checked ? checked.value : '';
+    }
+    return document.getElementById(id).value;
+  };
   const num = id => { const v = parseFloat(val(id)); return isNaN(v) ? 0 : v; };
 
   // Count answered
@@ -1913,7 +1954,13 @@ function formatAnswer(val, fmt) {
 
 function buildAnswerRows(sectionNum) {
   return Q_MAP.filter(q => q.section === sectionNum).map(q => {
-    const raw = document.getElementById(q.id).value;
+    let raw;
+    if (RADIO_Q.includes(q.id)) {
+      const checked = document.querySelector('input[name="' + q.id + '"]:checked');
+      raw = checked ? checked.value : '';
+    } else {
+      raw = document.getElementById(q.id).value;
+    }
     const display = formatAnswer(raw, q.fmt);
     return `<div class="report-answer-row">
       <span class="ra-q">${q.q}</span>
@@ -1930,7 +1977,13 @@ const origCalculate = calculate;
 calculate = function() {
   origCalculate();
   // Re-derive scores (duplicating a bit but keeps it clean)
-  const val = id => document.getElementById(id).value;
+  const val = id => {
+    if (RADIO_Q.includes(id)) {
+      const checked = document.querySelector('input[name="' + id + '"]:checked');
+      return checked ? checked.value : '';
+    }
+    return document.getElementById(id).value;
+  };
   const num = id => { const v = parseFloat(val(id)); return isNaN(v) ? 0 : v; };
   const pastorAge = num('q3'), congAge = num('q4'), attendance = num('q5');
   const population = num('q14'), cityType = val('q13');
