@@ -2684,6 +2684,37 @@ showReport = function() {
 };
 
 // ── INIT ──
+// ── PROTECTION ──
+// Disable right-click context menu
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+// Block common View Source / DevTools shortcuts
+document.addEventListener('keydown', e => {
+  // Ctrl+U (View Source), Ctrl+Shift+I (DevTools), Ctrl+Shift+J (Console), Ctrl+Shift+C (Inspect), F12
+  if (
+    (e.ctrlKey && e.key === 'u') ||
+    (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i')) ||
+    (e.ctrlKey && e.shiftKey && (e.key === 'J' || e.key === 'j')) ||
+    (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) ||
+    (e.metaKey && e.altKey && (e.key === 'I' || e.key === 'i')) ||
+    (e.metaKey && e.altKey && (e.key === 'J' || e.key === 'j')) ||
+    (e.metaKey && e.altKey && (e.key === 'U' || e.key === 'u')) ||
+    e.key === 'F12'
+  ) {
+    e.preventDefault();
+    return false;
+  }
+});
+
+// Disable text selection on the page (except form inputs)
+document.addEventListener('selectstart', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  e.preventDefault();
+});
+
+// Disable drag
+document.addEventListener('dragstart', e => e.preventDefault());
+
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('pin1').focus();
 });
