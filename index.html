@@ -2066,20 +2066,22 @@ function calculate() {
   if (medianResAge > 0 && pastorAge > 0) pastorAgeDiff = pastorAge - medianResAge;
   if (medianResAge > 0 && congAge > 0) congAgeDiff = congAge - medianResAge;
 
+  // G42 and G43 both use congregation age gap (matches spreadsheet exactly)
   if (medianResAge > 0 && congAge > 0) {
+    // G42 = SUM(M43:Q43) — congregation gap, max 4
+    if (congAgeDiff - 10 <= 1) s2++;
+    if (congAgeDiff - 15 <= 1) s2++;
+    if (congAgeDiff - 20 <= 1) s2 += 2;
+    // G43 = SUM(M43:O43) — congregation gap again, max 4
     if (congAgeDiff - 10 <= 1) s2++;
     if (congAgeDiff - 15 <= 1) s2++;
     if (congAgeDiff - 20 <= 1) s2 += 2;
   }
-  if (medianResAge > 0 && pastorAge > 0) {
-    if (pastorAgeDiff - 10 <= 1) s2++;
-    if (pastorAgeDiff - 15 <= 1) s2++;
-    if (pastorAgeDiff - 20 <= 1) s2 += 2;
-  }
 
   const perCapitaGiving = attendance > 0 ? totalIncome / attendance : 0;
   const potentialPC = income > 0 ? income * 0.1 : 0;
-  if (income > 0) { [0,250,500,750,1000].forEach(t => { if (potentialPC > t) s2++; }); }
+  // Row 46: IF($F71>threshold,0,1) — points when potential giving is BELOW threshold
+  if (income > 0) { [0,250,500,750,1000].forEach(t => { if (!(potentialPC > t)) s2++; }); }
 
   // S3
   if (val('q18') === 'No') s3 += 2;
@@ -2130,19 +2132,19 @@ function calculate() {
       explanation.className = 'rating-explanation green';
       explanation.innerHTML = '<strong>Score 76-100 &mdash; Healthy:</strong> This church is healthy enough to continue without critical care. Concerns normally require fewer external resources and less intensive expertise.';
       explanation.style.display = 'block';
-    } else if (totalScore >= 60) {
+    } else if (totalScore > 60) {
       gaugeFill.style.stroke = 'var(--yellow)';
       ratingLabel.className = 'rating-label yellow';
       ratingLabel.textContent = 'Caution';
       explanation.className = 'rating-explanation yellow';
-      explanation.innerHTML = '<strong>Score 60-75 &mdash; Caution:</strong> This church exists between critical and minimal care needs. Often the best opportunity for denominations and consultants to gain traction with their resource investment.';
+      explanation.innerHTML = '<strong>Score 61-75 &mdash; Caution:</strong> This church exists between critical and minimal care needs. Often the best opportunity for denominations and consultants to gain traction with their resource investment.';
       explanation.style.display = 'block';
     } else {
       gaugeFill.style.stroke = 'var(--red)';
       ratingLabel.className = 'rating-label red';
       ratingLabel.textContent = 'Critical';
       explanation.className = 'rating-explanation red';
-      explanation.innerHTML = '<strong>Score below 60 &mdash; Critical:</strong> This church likely requires high levels of external resources, intense involvement, and higher expertise to recover. Radical shifts may be required.';
+      explanation.innerHTML = '<strong>Score 60 or below &mdash; Critical:</strong> This church likely requires high levels of external resources, intense involvement, and higher expertise to recover. Radical shifts may be required.';
       explanation.style.display = 'block';
     }
   } else {
@@ -2269,10 +2271,13 @@ calculate = function() {
   let pastorAgeDiff = 0, congAgeDiff = 0;
   if (medianResAge > 0 && pastorAge > 0) pastorAgeDiff = pastorAge - medianResAge;
   if (medianResAge > 0 && congAge > 0) congAgeDiff = congAge - medianResAge;
-  if (medianResAge > 0 && congAge > 0) { if (congAgeDiff-10<=1) s2++; if (congAgeDiff-15<=1) s2++; if (congAgeDiff-20<=1) s2+=2; }
-  if (medianResAge > 0 && pastorAge > 0) { if (pastorAgeDiff-10<=1) s2++; if (pastorAgeDiff-15<=1) s2++; if (pastorAgeDiff-20<=1) s2+=2; }
+  // G42+G43 both use congregation gap (matches spreadsheet)
+  if (medianResAge > 0 && congAge > 0) {
+    if (congAgeDiff-10<=1) s2++; if (congAgeDiff-15<=1) s2++; if (congAgeDiff-20<=1) s2+=2;
+    if (congAgeDiff-10<=1) s2++; if (congAgeDiff-15<=1) s2++; if (congAgeDiff-20<=1) s2+=2;
+  }
   const potentialPC = income > 0 ? income * 0.1 : 0;
-  if (income > 0) { [0,250,500,750,1000].forEach(t => { if (potentialPC > t) s2++; }); }
+  if (income > 0) { [0,250,500,750,1000].forEach(t => { if (!(potentialPC > t)) s2++; }); }
 
   let s3 = 0;
   if (val('q18') === 'No') s3 += 2;
@@ -2331,20 +2336,20 @@ function showReport() {
     label.textContent = 'Healthy';
     expl.className = 'rating-explanation green';
     expl.innerHTML = '<strong>Score 76-100 — Healthy:</strong> This church is healthy enough to continue without critical care. Concerns normally require fewer external resources and less intensive expertise.';
-  } else if (total >= 60) {
+  } else if (total > 60) {
     rpt.classList.add('yellow');
     fill.style.stroke = 'var(--yellow)';
     label.className = 'report-rating yellow';
     label.textContent = 'Caution';
     expl.className = 'rating-explanation yellow';
-    expl.innerHTML = '<strong>Score 60-75 — Caution:</strong> This church exists between critical and minimal care needs. Often the best opportunity for denominations and consultants to gain traction with their resource investment.';
+    expl.innerHTML = '<strong>Score 61-75 — Caution:</strong> This church exists between critical and minimal care needs. Often the best opportunity for denominations and consultants to gain traction with their resource investment.';
   } else {
     rpt.classList.add('red');
     fill.style.stroke = 'var(--red)';
     label.className = 'report-rating red';
     label.textContent = 'Critical';
     expl.className = 'rating-explanation red';
-    expl.innerHTML = '<strong>Score below 60 — Critical:</strong> This church likely requires high levels of external resources, intense involvement, and higher expertise to recover. Radical shifts may be required.';
+    expl.innerHTML = '<strong>Score 60 or below — Critical:</strong> This church likely requires high levels of external resources, intense involvement, and higher expertise to recover. Radical shifts may be required.';
   }
 
   // Section scores
