@@ -69,6 +69,25 @@ function setupSheets() {
   Logger.log('Setup complete. Spreadsheet: ' + SPREADSHEET_ID);
 }
 
+function resetUsersSheet() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var existing = ss.getSheetByName('Users');
+  if (existing) ss.deleteSheet(existing);
+
+  var users = ss.insertSheet('Users');
+  users.appendRow(['PIN', 'Name', 'Email', 'Role', 'Church', 'DateRegistered', 'LastLogin', 'Active', 'FirstLogin']);
+  users.getRange('A1:I1').setFontWeight('bold').setBackground('#1b2541').setFontColor('white');
+  users.appendRow(['1234', 'Steve Harper', 'steve@citybioclean.com', 'Admin', '', new Date(), '', 'Y', 'N']);
+  users.appendRow(['5678', 'Mike Harper', 'mharper@northtexas.ag', 'Admin', '', new Date(), '', 'Y', 'N']);
+  users.setColumnWidth(1, 80);
+  users.setColumnWidth(2, 160);
+  users.setColumnWidth(3, 200);
+  users.setColumnWidth(4, 80);
+  users.setColumnWidth(5, 160);
+  users.setColumnWidth(9, 80);
+  Logger.log('Users sheet reset with FirstLogin column. Steve + Mike added as Admin.');
+}
+
 function setupAdmin() {
   // Set your admin email here, then run this function once
   const adminEmail = 'mharper@northtexas.ag';
