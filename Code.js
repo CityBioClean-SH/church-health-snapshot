@@ -586,6 +586,57 @@ function getUsers() {
   }
 }
 
+function updateUser(data) {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var users = ss.getSheetByName('Users');
+    var all = users.getDataRange().getValues();
+    var row = data.row;
+
+    if (row < 2 || row > all.length) return { success: false, error: 'Invalid user row' };
+
+    // Check for duplicate PIN (excluding this user's row)
+    if (data.pin) {
+      for (var i = 1; i < all.length; i++) {
+        if ((i + 1) !== row && String(all[i][0]) === String(data.pin)) {
+          return { success: false, error: 'PIN already in use by ' + all[i][1] };
+        }
+      }
+      users.getRange(row, 1).setValue(String(data.pin));
+    }
+    if (data.name) users.getRange(row, 2).setValue(data.name);
+    if (data.email !== undefined) users.getRange(row, 3).setValue(data.email);
+    if (data.role) users.getRange(row, 4).setValue(data.role);
+    if (data.church !== undefined) users.getRange(row, 5).setValue(data.church);
+
+    logAudit('ADMIN', 'USER_UPDATED', data.name + ' (row ' + row + ')');
+    return { success: true };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function toggleUserActive(data) {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var users = ss.getSheetByName('Users');
+    var all = users.getDataRange().getValues();
+    var row = data.row;
+
+    if (row < 2 || row > all.length) return { success: false, error: 'Invalid user row' };
+
+    var currentStatus = all[row - 1][7];
+    var newStatus = (currentStatus === 'Y') ? 'N' : 'Y';
+    users.getRange(row, 8).setValue(newStatus);
+
+    var userName = all[row - 1][1];
+    logAudit('ADMIN', newStatus === 'Y' ? 'USER_ENABLED' : 'USER_DISABLED', userName);
+    return { success: true, active: newStatus, name: userName };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
 // ── AUDIT LOG ──
 
 function logAudit(user, action, details) {

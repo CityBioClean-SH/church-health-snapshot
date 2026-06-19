@@ -533,6 +533,101 @@
     color: var(--text-soft);
   }
 
+  .admin-user-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .admin-action-btn {
+    background: none;
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .admin-action-btn:hover { background: #f5f3ee; }
+
+  .admin-action-btn.disable {
+    color: #991b1b;
+    border-color: #fecaca;
+  }
+
+  .admin-action-btn.disable:hover { background: #fef2f2; }
+
+  .admin-action-btn.enable {
+    color: #065f46;
+    border-color: #a7f3d0;
+  }
+
+  .admin-action-btn.enable:hover { background: #ecfdf5; }
+
+  .admin-user-item.inactive {
+    opacity: 0.5;
+  }
+
+  .admin-edit-form {
+    display: none;
+    padding: 12px 0;
+    border-bottom: 1px solid #f2efe9;
+  }
+
+  .admin-edit-form.active { display: block; }
+
+  .admin-edit-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .admin-edit-row input,
+  .admin-edit-row select {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .admin-edit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .admin-save-btn {
+    background: var(--navy);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .admin-save-btn:hover { background: var(--navy-light); }
+
+  .admin-cancel-btn {
+    background: none;
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-soft);
+  }
+
   .admin-msg {
     padding: 12px 16px;
     border-radius: 8px;
@@ -2417,12 +2512,42 @@ function loadUserList() {
       if (result.success && result.users.length > 0) {
         list.innerHTML = result.users.map(function(u) {
           var lastLogin = u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Never';
-          return '<li class="admin-user-item">' +
+          var isActive = u.active === 'Y';
+          var toggleClass = isActive ? 'disable' : 'enable';
+          var toggleLabel = isActive ? 'Disable' : 'Enable';
+
+          return '<li class="admin-user-item' + (isActive ? '' : ' inactive') + '" id="user-row-' + u.row + '">' +
             '<div class="admin-user-info">' +
-              '<div class="admin-user-name">' + u.name + '</div>' +
-              '<div class="admin-user-detail">PIN: ' + u.pin + (u.email ? ' · ' + u.email : '') + ' · Last login: ' + lastLogin + '</div>' +
+              '<div class="admin-user-name">' + u.name + (isActive ? '' : ' <span style="color:#991b1b;font-size:11px;">(disabled)</span>') + '</div>' +
+              '<div class="admin-user-detail">PIN: ' + u.pin + (u.email ? ' &middot; ' + u.email : '') + (u.church ? ' &middot; ' + u.church : '') + ' &middot; Last login: ' + lastLogin + '</div>' +
             '</div>' +
-            '<span class="admin-user-role">' + u.role + '</span>' +
+            '<div class="admin-user-actions">' +
+              '<button class="admin-action-btn" onclick="handleEditUser(' + u.row + ',\'' + u.pin.replace(/'/g,"\\'") + '\',\'' + u.name.replace(/'/g,"\\'") + '\',\'' + (u.email||'').replace(/'/g,"\\'") + '\',\'' + u.role.replace(/'/g,"\\'") + '\',\'' + (u.church||'').replace(/'/g,"\\'") + '\')">Edit</button>' +
+              '<span class="admin-user-role">' + u.role + '</span>' +
+              '<button class="admin-action-btn ' + toggleClass + '" onclick="handleToggleUser(' + u.row + ')">' + toggleLabel + '</button>' +
+            '</div>' +
+          '</li>' +
+          '<li class="admin-edit-form" id="edit-form-' + u.row + '">' +
+            '<div class="admin-edit-row">' +
+              '<input type="text" id="edit-name-' + u.row + '" placeholder="Name">' +
+              '<input type="text" id="edit-pin-' + u.row + '" placeholder="PIN" maxlength="4">' +
+            '</div>' +
+            '<div class="admin-edit-row">' +
+              '<input type="email" id="edit-email-' + u.row + '" placeholder="Email">' +
+              '<input type="text" id="edit-church-' + u.row + '" placeholder="Church">' +
+            '</div>' +
+            '<div class="admin-edit-row">' +
+              '<select id="edit-role-' + u.row + '">' +
+                '<option value="Pastor"' + (u.role === 'Pastor' ? ' selected' : '') + '>Pastor</option>' +
+                '<option value="District"' + (u.role === 'District' ? ' selected' : '') + '>District Leader</option>' +
+                '<option value="Admin"' + (u.role === 'Admin' ? ' selected' : '') + '>Admin</option>' +
+              '</select>' +
+              '<div></div>' +
+            '</div>' +
+            '<div class="admin-edit-actions">' +
+              '<button class="admin-save-btn" onclick="handleSaveUser(' + u.row + ')">Save Changes</button>' +
+              '<button class="admin-cancel-btn" onclick="handleCancelEdit(' + u.row + ')">Cancel</button>' +
+            '</div>' +
           '</li>';
         }).join('');
       } else {
@@ -2433,6 +2558,77 @@ function loadUserList() {
       list.innerHTML = '<li class="admin-user-item" style="color:var(--text-faint);font-size:13px;">Failed to load users</li>';
     })
     .getUsers();
+}
+
+function handleEditUser(row, pin, name, email, role, church) {
+  // Close any other open edit forms
+  document.querySelectorAll('.admin-edit-form.active').forEach(function(f) { f.classList.remove('active'); });
+
+  var form = document.getElementById('edit-form-' + row);
+  form.classList.add('active');
+  document.getElementById('edit-name-' + row).value = name;
+  document.getElementById('edit-pin-' + row).value = pin;
+  document.getElementById('edit-email-' + row).value = email;
+  document.getElementById('edit-church-' + row).value = church;
+  document.getElementById('edit-role-' + row).value = role;
+}
+
+function handleCancelEdit(row) {
+  document.getElementById('edit-form-' + row).classList.remove('active');
+}
+
+function handleSaveUser(row) {
+  var name = document.getElementById('edit-name-' + row).value.trim();
+  var pin = document.getElementById('edit-pin-' + row).value.trim();
+  var email = document.getElementById('edit-email-' + row).value.trim();
+  var role = document.getElementById('edit-role-' + row).value;
+  var church = document.getElementById('edit-church-' + row).value.trim();
+
+  if (!name || !pin) { alert('Name and PIN are required.'); return; }
+  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) { alert('PIN must be exactly 4 digits.'); return; }
+
+  var saveBtn = document.getElementById('edit-form-' + row).querySelector('.admin-save-btn');
+  saveBtn.textContent = 'Saving...';
+  saveBtn.disabled = true;
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      saveBtn.textContent = 'Save Changes';
+      saveBtn.disabled = false;
+      if (result.success) {
+        document.getElementById('edit-form-' + row).classList.remove('active');
+        loadUserList();
+        var msgEl = document.getElementById('adminMsg');
+        msgEl.className = 'admin-msg success';
+        msgEl.textContent = name + ' updated successfully.';
+      } else {
+        alert(result.error || 'Failed to update user.');
+      }
+    })
+    .withFailureHandler(function() {
+      saveBtn.textContent = 'Save Changes';
+      saveBtn.disabled = false;
+      alert('Connection error. Please try again.');
+    })
+    .updateUser({ row: row, pin: pin, name: name, email: email, role: role, church: church });
+}
+
+function handleToggleUser(row) {
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success) {
+        loadUserList();
+        var msgEl = document.getElementById('adminMsg');
+        msgEl.className = 'admin-msg success';
+        msgEl.textContent = result.name + ' has been ' + (result.active === 'Y' ? 'enabled' : 'disabled') + '.';
+      } else {
+        alert(result.error || 'Failed to update user.');
+      }
+    })
+    .withFailureHandler(function() {
+      alert('Connection error. Please try again.');
+    })
+    .toggleUserActive({ row: row });
 }
 
 function handleAddUser() {
