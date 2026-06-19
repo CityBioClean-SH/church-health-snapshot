@@ -803,7 +803,7 @@
   /* Church info header */
   .church-header {
     display: grid;
-    grid-template-columns: 1fr 1fr auto;
+    grid-template-columns: 1fr 1fr auto auto;
     gap: 16px;
     margin-bottom: 32px;
     padding: 24px 28px;
@@ -840,6 +840,42 @@
     background: white;
     box-shadow: 0 0 0 3px var(--gold-dim);
   }
+
+  .zip-lookup-btn {
+    background: var(--navy);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+
+  .zip-lookup-btn:hover { background: var(--navy-light); }
+  .zip-lookup-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .zip-result {
+    margin: -20px 0 24px;
+    padding: 14px 28px;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #065f46;
+    line-height: 1.5;
+  }
+
+  .zip-result.error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+  }
+
+  .zip-result strong { font-weight: 700; }
 
   /* ── SECTIONS ── */
   .section {
@@ -1901,10 +1937,18 @@
         <input type="text" id="pastorName" placeholder="">
       </div>
       <div class="field">
+        <label>ZIP Code</label>
+        <div style="display:flex;gap:6px;">
+          <input type="text" id="churchZip" placeholder="75115" maxlength="5" pattern="[0-9]*" style="flex:1;">
+          <button class="zip-lookup-btn" id="zipLookupBtn" onclick="handleZipLookup()">Look Up</button>
+        </div>
+      </div>
+      <div class="field">
         <label>Date</label>
         <input type="text" id="assessDate" readonly>
       </div>
     </div>
+    <div class="zip-result" id="zipResult" style="display:none;"></div>
 
     <!-- SECTION 1 -->
     <div class="section" id="section1">
@@ -1996,7 +2040,7 @@
         <svg class="chevron" width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
       </div>
       <div class="section-body">
-        <div class="q-note">Use city-data.com to find demographic information for your community.</div>
+        <div class="q-note" id="demoNote">Enter a ZIP code above to auto-fill community demographics from U.S. Census data.</div>
         <div class="q-row" data-q="q13">
           <div class="q-num">14</div>
           <div class="q-text">What type of city is the church in?</div>
@@ -2687,6 +2731,84 @@ function handleAddUser() {
 // ── WELCOME WALKTHROUGH ──
 function dismissWalkthrough() {
   document.getElementById('walkthroughOverlay').classList.remove('active');
+}
+
+// ── CENSUS ZIP LOOKUP ──
+function handleZipLookup() {
+  var zip = document.getElementById('churchZip').value.trim();
+  var btn = document.getElementById('zipLookupBtn');
+  var resultDiv = document.getElementById('zipResult');
+
+  if (!zip || zip.length !== 5 || !/^\d{5}$/.test(zip)) {
+    resultDiv.className = 'zip-result error';
+    resultDiv.textContent = 'Please enter a valid 5-digit ZIP code.';
+    resultDiv.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = 'Looking up...';
+  btn.disabled = true;
+  resultDiv.style.display = 'none';
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      btn.textContent = 'Look Up';
+      btn.disabled = false;
+
+      if (result.success) {
+        // Auto-fill demographics fields
+        // q14 — Population
+        document.getElementById('q14').value = result.population;
+
+        // q13 — City type (radio)
+        var cityTypeMap = {
+          'Rural (Under 8000)': 'q13_r',
+          'Small city (8k-50k)': 'q13_s',
+          'Large City (over 50k)': 'q13_l',
+          'Urban/Metro (100k+)': 'q13_u'
+        };
+        var radioId = cityTypeMap[result.cityType];
+        if (radioId) document.getElementById(radioId).checked = true;
+
+        // q15 — Population change (radio)
+        var popChangeMap = { 'Declining': 'q15_d', 'Static': 'q15_s', 'Increasing': 'q15_i' };
+        var popRadio = popChangeMap[result.popChange];
+        if (popRadio) document.getElementById(popRadio).checked = true;
+
+        // q16 — Median age
+        document.getElementById('q16').value = result.medianAge;
+
+        // q17 — Per capita income
+        document.getElementById('q17').value = result.perCapitaIncome;
+
+        // Update progress
+        calculate();
+
+        // Show success message
+        resultDiv.className = 'zip-result';
+        resultDiv.innerHTML = '<strong>' + result.placeName + '</strong> — Pop: ' + result.population.toLocaleString() +
+          ' · Median Age: ' + result.medianAge +
+          ' · Per Capita Income: $' + result.perCapitaIncome.toLocaleString() +
+          ' · Household Income: $' + result.medianHouseholdIncome.toLocaleString() +
+          ' · Trend: ' + result.popChange;
+        resultDiv.style.display = 'block';
+
+        // Update the note
+        document.getElementById('demoNote').textContent = 'Census data auto-filled for ZIP ' + zip + '. You can still adjust values manually.';
+      } else {
+        resultDiv.className = 'zip-result error';
+        resultDiv.textContent = result.error || 'Lookup failed. Please try again.';
+        resultDiv.style.display = 'block';
+      }
+    })
+    .withFailureHandler(function(err) {
+      btn.textContent = 'Look Up';
+      btn.disabled = false;
+      resultDiv.className = 'zip-result error';
+      resultDiv.textContent = 'Connection error. Please try again.';
+      resultDiv.style.display = 'block';
+    })
+    .lookupCensusData(zip);
 }
 
 function toggleSection(id) { document.getElementById(id).classList.toggle('collapsed'); }

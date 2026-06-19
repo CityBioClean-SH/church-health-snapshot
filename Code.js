@@ -88,6 +88,93 @@ function resetUsersSheet() {
   Logger.log('Users sheet reset with FirstLogin column. Steve + Mike added as Admin.');
 }
 
+function setupCensusKey() {
+  PropertiesService.getScriptProperties().setProperty('CENSUS_API_KEY', 'b084691f5c7c1ab4b82caec5dbf0988f2d31dca8');
+  Logger.log('Census API key stored in Script Properties.');
+}
+
+function lookupCensusData(zip) {
+  try {
+    var apiKey = PropertiesService.getScriptProperties().getProperty('CENSUS_API_KEY');
+    if (!apiKey) return { success: false, error: 'Census API key not configured. Run setupCensusKey() in Code.js.' };
+
+    zip = String(zip).trim().replace(/\D/g, '');
+    if (zip.length !== 5) return { success: false, error: 'Invalid ZIP code' };
+
+    // ACS 5-year estimates — most recent available
+    // B01003_001E = Total population
+    // B01002_001E = Median age
+    // B19013_001E = Median household income
+    // B19301_001E = Per capita income
+    var vars = 'NAME,B01003_001E,B01002_001E,B19013_001E,B19301_001E';
+    var url2023 = 'https://api.census.gov/data/2023/acs/acs5?get=' + vars + '&for=zip%20code%20tabulation%20area:' + zip + '&key=' + apiKey;
+    var url2020 = 'https://api.census.gov/data/2020/acs/acs5?get=' + vars + '&for=zip%20code%20tabulation%20area:' + zip + '&key=' + apiKey;
+
+    // Fetch current data
+    var response = UrlFetchApp.fetch(url2023, { muteHttpExceptions: true });
+    if (response.getResponseCode() !== 200) {
+      // Fall back to 2022
+      var url2022 = url2023.replace('/2023/', '/2022/');
+      response = UrlFetchApp.fetch(url2022, { muteHttpExceptions: true });
+      if (response.getResponseCode() !== 200) {
+        return { success: false, error: 'No Census data found for ZIP ' + zip };
+      }
+    }
+
+    var data = JSON.parse(response.getContentText());
+    if (data.length < 2) return { success: false, error: 'No data returned for ZIP ' + zip };
+
+    var row = data[1];
+    var placeName = row[0];
+    var population = parseInt(row[1]) || 0;
+    var medianAge = parseFloat(row[2]) || 0;
+    var medianHouseholdIncome = parseInt(row[3]) || 0;
+    var perCapitaIncome = parseInt(row[4]) || 0;
+
+    // Determine city type from population
+    var cityType = '';
+    if (population < 8000) cityType = 'Rural (Under 8000)';
+    else if (population <= 50000) cityType = 'Small city (8k-50k)';
+    else if (population <= 100000) cityType = 'Large City (over 50k)';
+    else cityType = 'Urban/Metro (100k+)';
+
+    // Fetch older data for population change comparison
+    var popChange = 'Static';
+    try {
+      var oldResponse = UrlFetchApp.fetch(url2020, { muteHttpExceptions: true });
+      if (oldResponse.getResponseCode() === 200) {
+        var oldData = JSON.parse(oldResponse.getContentText());
+        if (oldData.length >= 2) {
+          var oldPop = parseInt(oldData[1][1]) || 0;
+          if (oldPop > 0 && population > 0) {
+            var pctChange = ((population - oldPop) / oldPop) * 100;
+            if (pctChange > 2) popChange = 'Increasing';
+            else if (pctChange < -2) popChange = 'Declining';
+            else popChange = 'Static';
+          }
+        }
+      }
+    } catch(e) {
+      // If older data fails, default to Static
+    }
+
+    logAudit('SYSTEM', 'CENSUS_LOOKUP', 'ZIP: ' + zip + ' — ' + placeName + ', Pop: ' + population);
+
+    return {
+      success: true,
+      placeName: placeName,
+      population: population,
+      medianAge: Math.round(medianAge * 10) / 10,
+      medianHouseholdIncome: medianHouseholdIncome,
+      perCapitaIncome: perCapitaIncome,
+      cityType: cityType,
+      popChange: popChange
+    };
+  } catch(e) {
+    return { success: false, error: 'Census lookup failed: ' + e.message };
+  }
+}
+
 function setupAdmin() {
   // Set your admin email here, then run this function once
   const adminEmail = 'mharper@northtexas.ag';
