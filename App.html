@@ -364,6 +364,282 @@
     border-color: rgba(255,255,255,0.25);
   }
 
+  .admin-btn {
+    background: rgba(201,162,39,0.15);
+    border: 1px solid rgba(201,162,39,0.3);
+    color: var(--gold);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .admin-btn:hover {
+    background: rgba(201,162,39,0.25);
+    border-color: var(--gold);
+  }
+
+  /* ── Admin Panel ── */
+  .admin-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(27,37,65,0.6);
+    z-index: 1000;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 80px 16px 16px;
+    overflow-y: auto;
+  }
+
+  .admin-overlay.active { display: flex; }
+
+  .admin-panel {
+    background: var(--bg);
+    border-radius: 16px;
+    max-width: 640px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+  }
+
+  .admin-panel-header {
+    background: var(--navy);
+    color: white;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .admin-panel-header h2 {
+    margin: 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+  }
+
+  .admin-close {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+  .admin-close:hover { color: white; }
+
+  .admin-body { padding: 24px; }
+
+  .admin-form-group {
+    margin-bottom: 16px;
+  }
+
+  .admin-form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .admin-form-group input,
+  .admin-form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    background: white;
+    box-sizing: border-box;
+  }
+
+  .admin-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .admin-submit {
+    background: var(--navy);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+
+  .admin-submit:hover { background: var(--navy-light); }
+
+  .admin-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+  }
+
+  .admin-user-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .admin-user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f2efe9;
+  }
+
+  .admin-user-item:last-child { border-bottom: none; }
+
+  .admin-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .admin-user-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .admin-user-detail {
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  .admin-user-role {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: #f0ede5;
+    color: var(--text-soft);
+  }
+
+  .admin-msg {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+
+  .admin-msg.success { display: block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+  .admin-msg.error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+  /* ── Welcome Walkthrough ── */
+  .walkthrough-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(27,37,65,0.7);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+  }
+
+  .walkthrough-overlay.active { display: flex; }
+
+  .walkthrough-card {
+    background: white;
+    border-radius: 16px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .walkthrough-header {
+    background: var(--navy);
+    padding: 32px 24px;
+    color: white;
+  }
+
+  .walkthrough-header h2 {
+    margin: 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+  }
+
+  .walkthrough-header p {
+    margin: 8px 0 0;
+    color: var(--gold);
+    font-size: 13px;
+  }
+
+  .walkthrough-body {
+    padding: 28px 24px;
+  }
+
+  .walkthrough-steps {
+    text-align: left;
+    margin: 0 0 24px;
+  }
+
+  .walkthrough-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 12px 0;
+  }
+
+  .walkthrough-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .walkthrough-step-text {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.5;
+    padding-top: 3px;
+  }
+
+  .walkthrough-step-text strong { color: var(--navy); }
+
+  .walkthrough-start {
+    background: var(--navy);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .walkthrough-start:hover { background: var(--navy-light); }
+
   /* ═══════════════════════════════════
      PROGRESS BAR (no score shown)
      ═══════════════════════════════════ */
@@ -1502,6 +1778,7 @@
           <span class="user-name" id="userName">Steve Harper</span>
         </div>
         <span class="role-tag" id="userRole">Admin</span>
+        <button class="admin-btn" id="adminBtn" onclick="toggleAdminPanel()" style="display:none;">Manage Users</button>
         <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
       </div>
     </div>
@@ -1933,6 +2210,88 @@
     </div>
   </div>
 
+<!-- ═══ Admin Panel Overlay ═══ -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-panel">
+    <div class="admin-panel-header">
+      <h2>User Management</h2>
+      <button class="admin-close" onclick="toggleAdminPanel()">&times;</button>
+    </div>
+    <div class="admin-body">
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--navy);margin:0 0 16px;">Add New User</h3>
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label>Full Name</label>
+          <input type="text" id="newUserName" placeholder="Pastor John Smith">
+        </div>
+        <div class="admin-form-group">
+          <label>PIN (4 digits)</label>
+          <input type="text" id="newUserPin" placeholder="1234" maxlength="4" pattern="[0-9]*">
+        </div>
+      </div>
+      <div class="admin-form-group">
+        <label>Email Address</label>
+        <input type="email" id="newUserEmail" placeholder="pastor@church.org">
+      </div>
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label>Role</label>
+          <select id="newUserRole">
+            <option value="Pastor">Pastor</option>
+            <option value="District">District Leader</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </div>
+        <div class="admin-form-group">
+          <label>Church Name</label>
+          <input type="text" id="newUserChurch" placeholder="First Assembly">
+        </div>
+      </div>
+      <button class="admin-submit" id="addUserBtn" onclick="handleAddUser()">Add User &amp; Send Welcome Email</button>
+      <div class="admin-msg" id="adminMsg"></div>
+
+      <hr class="admin-divider">
+
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--navy);margin:0 0 16px;">Current Users</h3>
+      <ul class="admin-user-list" id="adminUserList">
+        <li class="admin-user-item" style="color:var(--text-faint);font-size:13px;">Loading...</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ First-Time Welcome Walkthrough ═══ -->
+<div class="walkthrough-overlay" id="walkthroughOverlay">
+  <div class="walkthrough-card">
+    <div class="walkthrough-header">
+      <h2>Welcome to Church Health Snapshot</h2>
+      <p>North Texas Assemblies of God</p>
+    </div>
+    <div class="walkthrough-body">
+      <p style="font-size:14px;color:var(--text-soft);margin:0 0 20px;line-height:1.6;">This tool helps assess the overall health of your church across key areas. Here's how it works:</p>
+      <div class="walkthrough-steps">
+        <div class="walkthrough-step">
+          <div class="walkthrough-step-num">1</div>
+          <div class="walkthrough-step-text"><strong>Enter your church info</strong> — name, pastor, and basic details at the top of the form.</div>
+        </div>
+        <div class="walkthrough-step">
+          <div class="walkthrough-step-num">2</div>
+          <div class="walkthrough-step-text"><strong>Answer 29 questions</strong> across three sections: Statistical, Demographics, and Subjective. Your progress is tracked at the top.</div>
+        </div>
+        <div class="walkthrough-step">
+          <div class="walkthrough-step-num">3</div>
+          <div class="walkthrough-step-text"><strong>Submit for your report</strong> — you'll receive a health score (out of 95), a rating (Healthy, Caution, or Critical), and specific recommendations.</div>
+        </div>
+        <div class="walkthrough-step">
+          <div class="walkthrough-step-num">4</div>
+          <div class="walkthrough-step-text"><strong>Your answers auto-save</strong> — you can close the browser and come back to finish later. Nothing is lost.</div>
+        </div>
+      </div>
+      <button class="walkthrough-start" onclick="dismissWalkthrough()">Get Started</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Church Health Snapshot — Client (NO scoring formulas) ──
 // All scoring happens server-side via google.script.run
@@ -1968,7 +2327,7 @@ function handlePinLogin() {
       document.querySelector('.login-btn').textContent = 'Sign In';
       document.querySelector('.login-btn').disabled = false;
       if (result.success) {
-        loginAs({ name: result.name, initials: result.name.split(' ').map(w=>w[0]).join('').substring(0,2), role: result.role, church: result.church });
+        loginAs({ name: result.name, initials: result.name.split(' ').map(w=>w[0]).join('').substring(0,2), role: result.role, church: result.church, firstLogin: result.firstLogin });
       } else {
         document.getElementById('pinError').style.display = 'block';
         document.querySelectorAll('.pin-input input').forEach(i => { i.value = ''; });
@@ -1995,7 +2354,7 @@ function handleEmailLogin() {
   google.script.run
     .withSuccessHandler(result => {
       if (result.success) {
-        loginAs({ name: result.name, initials: result.name.split(' ').map(w=>w[0]).join('').substring(0,2), role: result.role, church: result.church });
+        loginAs({ name: result.name, initials: result.name.split(' ').map(w=>w[0]).join('').substring(0,2), role: result.role, church: result.church, firstLogin: result.firstLogin });
       } else {
         document.getElementById('emailError').style.display = 'block';
       }
@@ -2016,15 +2375,122 @@ function loginAs(user) {
   document.getElementById('userRole').textContent = user.role;
   document.getElementById('assessDate').value = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   if (user.church) document.getElementById('churchName').value = user.church;
+
+  // Show admin button for Admin role
+  document.getElementById('adminBtn').style.display = (user.role === 'Admin') ? 'inline-block' : 'none';
+
+  // Show walkthrough for first-time users
+  if (user.firstLogin) {
+    document.getElementById('walkthroughOverlay').classList.add('active');
+  }
+
   restoreSave();
 }
 
 function handleLogout() {
   currentUser = null;
   document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('adminOverlay').classList.remove('active');
+  document.getElementById('adminBtn').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.querySelectorAll('.pin-input input').forEach(i => { i.value = ''; });
   document.getElementById('pin1').focus();
+}
+
+// ── ADMIN PANEL ──
+function toggleAdminPanel() {
+  var overlay = document.getElementById('adminOverlay');
+  if (overlay.classList.contains('active')) {
+    overlay.classList.remove('active');
+  } else {
+    overlay.classList.add('active');
+    loadUserList();
+  }
+}
+
+function loadUserList() {
+  var list = document.getElementById('adminUserList');
+  list.innerHTML = '<li class="admin-user-item" style="color:var(--text-faint);font-size:13px;">Loading...</li>';
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success && result.users.length > 0) {
+        list.innerHTML = result.users.map(function(u) {
+          var lastLogin = u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Never';
+          return '<li class="admin-user-item">' +
+            '<div class="admin-user-info">' +
+              '<div class="admin-user-name">' + u.name + '</div>' +
+              '<div class="admin-user-detail">PIN: ' + u.pin + (u.email ? ' · ' + u.email : '') + ' · Last login: ' + lastLogin + '</div>' +
+            '</div>' +
+            '<span class="admin-user-role">' + u.role + '</span>' +
+          '</li>';
+        }).join('');
+      } else {
+        list.innerHTML = '<li class="admin-user-item" style="color:var(--text-faint);font-size:13px;">No users found</li>';
+      }
+    })
+    .withFailureHandler(function() {
+      list.innerHTML = '<li class="admin-user-item" style="color:var(--text-faint);font-size:13px;">Failed to load users</li>';
+    })
+    .getUsers();
+}
+
+function handleAddUser() {
+  var name = document.getElementById('newUserName').value.trim();
+  var pin = document.getElementById('newUserPin').value.trim();
+  var email = document.getElementById('newUserEmail').value.trim();
+  var role = document.getElementById('newUserRole').value;
+  var church = document.getElementById('newUserChurch').value.trim();
+  var msgEl = document.getElementById('adminMsg');
+
+  if (!name || !pin) {
+    msgEl.className = 'admin-msg error';
+    msgEl.textContent = 'Name and PIN are required.';
+    return;
+  }
+  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+    msgEl.className = 'admin-msg error';
+    msgEl.textContent = 'PIN must be exactly 4 digits.';
+    return;
+  }
+
+  var btn = document.getElementById('addUserBtn');
+  btn.textContent = 'Adding...';
+  btn.disabled = true;
+  msgEl.className = 'admin-msg';
+  msgEl.style.display = 'none';
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      btn.textContent = 'Add User & Send Welcome Email';
+      btn.disabled = false;
+      if (result.success) {
+        msgEl.className = 'admin-msg success';
+        msgEl.textContent = name + ' has been added' + (email ? ' and a welcome email was sent to ' + email : '') + '.';
+        // Clear form
+        document.getElementById('newUserName').value = '';
+        document.getElementById('newUserPin').value = '';
+        document.getElementById('newUserEmail').value = '';
+        document.getElementById('newUserChurch').value = '';
+        document.getElementById('newUserRole').value = 'Pastor';
+        loadUserList();
+      } else {
+        msgEl.className = 'admin-msg error';
+        msgEl.textContent = result.error || 'Failed to add user.';
+      }
+    })
+    .withFailureHandler(function(err) {
+      btn.textContent = 'Add User & Send Welcome Email';
+      btn.disabled = false;
+      msgEl.className = 'admin-msg error';
+      msgEl.textContent = 'Connection error. Please try again.';
+    })
+    .addUser({ pin: pin, name: name, email: email, role: role, church: church });
+}
+
+// ── WELCOME WALKTHROUGH ──
+function dismissWalkthrough() {
+  document.getElementById('walkthroughOverlay').classList.remove('active');
 }
 
 function toggleSection(id) { document.getElementById(id).classList.toggle('collapsed'); }
