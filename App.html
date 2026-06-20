@@ -1919,28 +1919,245 @@
   }
 
   /* ═══════════════════════════════════
+     STEP FLOW
+     ═══════════════════════════════════ */
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 24px;
+    gap: 0;
+  }
+
+  .step-dot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .step-dot span {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-faint);
+    transition: all 0.3s;
+  }
+
+  .step-dot.active span {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: white;
+  }
+
+  .step-dot.done span {
+    background: var(--green, #059669);
+    border-color: var(--green, #059669);
+    color: white;
+  }
+
+  .step-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .step-dot.active .step-label,
+  .step-dot.done .step-label { color: var(--navy); }
+
+  .step-line {
+    width: 60px;
+    height: 2px;
+    background: var(--border);
+    margin: 0 8px;
+    margin-bottom: 20px;
+    transition: background 0.3s;
+  }
+
+  .step-line.done { background: var(--green, #059669); }
+
+  .step-panel { max-width: 680px; margin: 0 auto; padding: 0 16px; }
+
+  .step-card {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .step-card-header {
+    background: var(--navy);
+    padding: 28px 32px;
+    color: white;
+  }
+
+  .step-card-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    margin: 0;
+  }
+
+  .step-card-header p {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+  }
+
+  .step-card-body { padding: 28px 32px; }
+
+  .step-field {
+    margin-bottom: 20px;
+  }
+
+  .step-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .step-field input,
+  .step-field select {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    outline: none;
+    background: var(--bg);
+    transition: all 0.2s;
+    box-sizing: border-box;
+    color: var(--text);
+  }
+
+  .step-field input:focus,
+  .step-field select:focus {
+    border-color: var(--gold);
+    background: white;
+    box-shadow: 0 0 0 3px var(--gold-dim);
+  }
+
+  .step-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .step-hint {
+    font-size: 13px;
+    color: var(--text-faint);
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .step-submit {
+    display: block;
+    width: 100%;
+    padding: 16px 24px;
+    background: var(--navy);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .step-submit:hover { background: var(--navy-light); }
+  .step-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .step-back {
+    padding: 14px 24px;
+    background: none;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .step-back:hover { border-color: var(--navy); color: var(--navy); }
+
+  .step-nav {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .step-nav .step-submit { flex: 1; }
+
+  .step-error {
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #991b1b;
+    font-size: 14px;
+  }
+
+  /* ═══════════════════════════════════
      RESPONSIVE
      ═══════════════════════════════════ */
   @media (max-width: 768px) {
-    .church-header { grid-template-columns: 1fr; }
     .q-row { flex-wrap: wrap; gap: 10px; }
     .q-input { min-width: 100%; }
     .radio-group { width: 100%; }
-    .radio-group label { flex: 1; min-width: 0; }
+    .radio-group label { flex: 1; min-width: 0; padding: 12px 16px; font-size: 15px; }
+    .q-text { font-size: 15px; }
+    .q-num { width: 34px; height: 34px; font-size: 14px; }
+    .q-input input[type="number"],
+    .q-input input[type="text"] { font-size: 16px; padding: 12px 14px; }
     .header-actions .user-name { display: none; }
     .gauge-wrap { width: 150px; height: 150px; }
     .gauge-svg { width: 150px; height: 150px; }
     .gauge-score { font-size: 40px; }
+    .step-row-2 { grid-template-columns: 1fr; }
+    .step-line { width: 30px; }
+    .rel-grid { grid-template-columns: repeat(2, 1fr); }
+    .section-head h2 { font-size: 15px; }
   }
 
   @media (max-width: 480px) {
     .login-card { padding: 36px 24px; }
-    .pin-input input { width: 50px; height: 60px; font-size: 28px; }
-    .form-wrap { padding: 16px; }
-    .q-row { padding: 14px 18px; }
-    .section-head { padding: 16px 18px; }
+    .pin-input input { width: 56px; height: 66px; font-size: 30px; }
+    .form-wrap { padding: 12px; }
+    .q-row { padding: 16px 14px; }
+    .q-text { font-size: 16px; line-height: 1.6; }
+    .q-num { width: 36px; height: 36px; font-size: 15px; }
+    .radio-group label { padding: 14px 16px; font-size: 16px; }
+    .radio-group { gap: 8px; }
+    .section-head { padding: 16px 14px; }
+    .section-head h2 { font-size: 16px; }
     .findings-body { padding: 20px; }
     .score-reveal { padding: 32px 20px; }
+    .step-card-body { padding: 20px; }
+    .step-card-header { padding: 24px 20px; }
+    .step-field input,
+    .step-field select { font-size: 17px; padding: 16px; }
+    .step-submit { font-size: 17px; padding: 18px; }
+    .step-indicator { padding: 16px 12px; }
+    .btn-primary { font-size: 17px; padding: 18px; }
   }
 </style>
 </head>
@@ -2017,6 +2234,79 @@
     </div>
   </div>
 
+  <!-- ═══ STEP INDICATOR ═══ -->
+  <div class="step-indicator" id="stepIndicator">
+    <div class="step-dot active" id="stepDot1"><span>1</span><div class="step-label">Church Info</div></div>
+    <div class="step-line" id="stepLine1"></div>
+    <div class="step-dot" id="stepDot2"><span>2</span><div class="step-label">Community</div></div>
+    <div class="step-line" id="stepLine2"></div>
+    <div class="step-dot" id="stepDot3"><span>3</span><div class="step-label">Assessment</div></div>
+  </div>
+
+  <!-- ═══ STEP 1: CHURCH INFO ═══ -->
+  <div class="step-panel" id="step1">
+    <div class="step-card">
+      <div class="step-card-header">
+        <h2>Tell us about the church</h2>
+        <p>We'll use this to pull community data for your area.</p>
+      </div>
+      <div class="step-card-body">
+        <div class="step-field">
+          <label>Church Name</label>
+          <input type="text" id="churchName" placeholder="" autocomplete="off">
+        </div>
+        <div class="step-field">
+          <label>Pastor / Leader Name</label>
+          <input type="text" id="pastorName" placeholder="" autocomplete="off">
+        </div>
+        <div class="step-row-2">
+          <div class="step-field">
+            <label>City</label>
+            <input type="text" id="churchCity" placeholder="" autocomplete="off">
+          </div>
+          <div class="step-field">
+            <label>State</label>
+            <select id="churchState"><option value="TX" selected>Texas</option></select>
+          </div>
+        </div>
+        <div class="step-row-2">
+          <div class="step-field">
+            <label>ZIP Code</label>
+            <input type="text" id="churchZip" placeholder="" maxlength="5" pattern="[0-9]*" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="step-field">
+            <label>Date</label>
+            <input type="text" id="assessDate" readonly>
+          </div>
+        </div>
+        <div class="step-hint">Enter either a city or ZIP code — we'll look up the rest.</div>
+        <button class="step-submit" id="step1Submit" onclick="handleStep1Submit()">Get Community Profile</button>
+        <div class="step-error" id="step1Error" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 2: COMMUNITY PROFILE ═══ -->
+  <div class="step-panel" id="step2" style="display:none;">
+    <div class="step-card">
+      <div class="step-card-header">
+        <h2>Community Profile</h2>
+        <p id="step2Subtitle">Here's what we found for your area.</p>
+      </div>
+      <div class="step-card-body">
+        <div class="zip-result" id="zipResult" style="display:none;"></div>
+        <div class="religious-profile" id="religiousProfile" style="display:none;"></div>
+        <div class="step-nav">
+          <button class="step-back" onclick="goToStep(1)">Back</button>
+          <button class="step-submit" onclick="goToStep(3)">Continue to Assessment</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 3: ASSESSMENT ═══ -->
+  <div class="step-panel" id="step3" style="display:none;">
+
   <div class="progress-strip">
     <div class="progress-inner">
       <span class="progress-info"><span id="answeredCount">0</span> of 29 answered</span>
@@ -2028,38 +2318,6 @@
   </div>
 
   <div class="form-wrap">
-
-    <div class="church-header">
-      <div class="field">
-        <label>Church Name</label>
-        <input type="text" id="churchName" placeholder="">
-      </div>
-      <div class="field">
-        <label>Pastor</label>
-        <input type="text" id="pastorName" placeholder="">
-      </div>
-      <div class="field">
-        <label>Date</label>
-        <input type="text" id="assessDate" readonly>
-      </div>
-      <div class="field">
-        <label>City</label>
-        <input type="text" id="churchCity" placeholder="">
-      </div>
-      <div class="field">
-        <label>ZIP Code</label>
-        <div style="display:flex;gap:6px;">
-          <input type="text" id="churchZip" placeholder="" maxlength="5" pattern="[0-9]*" style="flex:1;">
-          <button class="zip-lookup-btn" id="zipLookupBtn" onclick="handleZipLookup()">Look Up</button>
-        </div>
-      </div>
-      <div class="field">
-        <label>&nbsp;</label>
-        <div class="lookup-hint">Enter city or ZIP, then click Look Up</div>
-      </div>
-    </div>
-    <div class="zip-result" id="zipResult" style="display:none;"></div>
-    <div class="religious-profile" id="religiousProfile" style="display:none;"></div>
 
     <!-- SECTION 1 -->
     <div class="section" id="section1">
@@ -2333,6 +2591,8 @@
     <p class="org">North Texas District of the Assemblies of God</p>
     <p style="margin-top:4px;">Target 1000 Department &middot; &copy; 2016</p>
   </div>
+
+  </div><!-- /step3 -->
 
   <!-- ═══════ REPORT VIEW ═══════ -->
   <div class="report-screen" id="reportScreen">
@@ -2634,6 +2894,9 @@ function loginAs(user) {
     document.getElementById('walkthroughOverlay').classList.add('active');
   }
 
+  // Start at step 1
+  goToStep(1);
+
   restoreSave();
 }
 
@@ -2844,64 +3107,91 @@ function dismissWalkthrough() {
   document.getElementById('walkthroughOverlay').classList.remove('active');
 }
 
-// ── CENSUS ZIP LOOKUP ──
-function handleZipLookup() {
+// ── STEP NAVIGATION ──
+function goToStep(step) {
+  document.getElementById('step1').style.display = step === 1 ? 'block' : 'none';
+  document.getElementById('step2').style.display = step === 2 ? 'block' : 'none';
+  document.getElementById('step3').style.display = step === 3 ? 'block' : 'none';
+
+  for (var i = 1; i <= 3; i++) {
+    var dot = document.getElementById('stepDot' + i);
+    dot.classList.remove('active', 'done');
+    if (i < step) dot.classList.add('done');
+    else if (i === step) dot.classList.add('active');
+  }
+  for (var j = 1; j <= 2; j++) {
+    var line = document.getElementById('stepLine' + j);
+    if (j < step) line.classList.add('done');
+    else line.classList.remove('done');
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function handleStep1Submit() {
   var zip = document.getElementById('churchZip').value.trim();
   var city = document.getElementById('churchCity').value.trim();
-  var btn = document.getElementById('zipLookupBtn');
-  var resultDiv = document.getElementById('zipResult');
+  var churchName = document.getElementById('churchName').value.trim();
+  var errorDiv = document.getElementById('step1Error');
+  var btn = document.getElementById('step1Submit');
+
+  if (!churchName) {
+    errorDiv.textContent = 'Please enter the church name.';
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  if (!zip && !city) {
+    errorDiv.textContent = 'Please enter a city or ZIP code.';
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  errorDiv.style.display = 'none';
+  btn.textContent = 'Looking up community data...';
+  btn.disabled = true;
 
   // If no ZIP but city is entered, look up ZIP from city first
   if ((!zip || zip.length !== 5) && city) {
-    btn.textContent = 'Finding ZIP...';
-    btn.disabled = true;
-    resultDiv.style.display = 'none';
-
     google.script.run
       .withSuccessHandler(function(result) {
         if (result.success && result.zip) {
           document.getElementById('churchZip').value = result.zip;
-          // Now run the full lookup with the found ZIP
-          runCensusLookup(result.zip, btn, resultDiv);
+          runCensusLookup(result.zip, btn);
         } else {
-          btn.textContent = 'Look Up';
+          btn.textContent = 'Get Community Profile';
           btn.disabled = false;
-          resultDiv.className = 'zip-result error';
-          resultDiv.textContent = result.error || 'City not found. Try entering a ZIP code instead.';
-          resultDiv.style.display = 'block';
+          errorDiv.textContent = result.error || 'City not found. Try entering a ZIP code.';
+          errorDiv.style.display = 'block';
         }
       })
       .withFailureHandler(function() {
-        btn.textContent = 'Look Up';
+        btn.textContent = 'Get Community Profile';
         btn.disabled = false;
-        resultDiv.className = 'zip-result error';
-        resultDiv.textContent = 'Connection error. Try entering a ZIP code instead.';
-        resultDiv.style.display = 'block';
+        errorDiv.textContent = 'Connection error. Try entering a ZIP code instead.';
+        errorDiv.style.display = 'block';
       })
       .lookupZipFromCity(city);
     return;
   }
 
   if (!zip || zip.length !== 5 || !/^\d{5}$/.test(zip)) {
-    resultDiv.className = 'zip-result error';
-    resultDiv.textContent = 'Enter a city name or a 5-digit ZIP code.';
-    resultDiv.style.display = 'block';
+    btn.textContent = 'Get Community Profile';
+    btn.disabled = false;
+    errorDiv.textContent = 'Please enter a valid 5-digit ZIP code.';
+    errorDiv.style.display = 'block';
     return;
   }
 
-  btn.textContent = 'Looking up...';
-  btn.disabled = true;
-  resultDiv.style.display = 'none';
-  runCensusLookup(zip, btn, resultDiv);
+  runCensusLookup(zip, btn);
 }
 
-function runCensusLookup(zip, btn, resultDiv) {
-  btn.textContent = 'Looking up...';
-  btn.disabled = true;
+function runCensusLookup(zip, btn) {
+  var resultDiv = document.getElementById('zipResult');
 
   google.script.run
     .withSuccessHandler(function(result) {
-      btn.textContent = 'Look Up';
+      btn.textContent = 'Get Community Profile';
       btn.disabled = false;
 
       if (result.success) {
@@ -2956,6 +3246,10 @@ function runCensusLookup(zip, btn, resultDiv) {
           document.getElementById('churchCity').value = result.cityName;
         }
 
+        // Navigate to step 2
+        document.getElementById('step2Subtitle').textContent = 'Here\'s what we found for ' + (result.cityName || 'your area') + '.';
+        goToStep(2);
+
         // Also fetch religious data
         google.script.run
           .withSuccessHandler(function(rel) {
@@ -3004,17 +3298,17 @@ function runCensusLookup(zip, btn, resultDiv) {
           .withFailureHandler(function() {})
           .lookupReligiousData(zip);
       } else {
-        resultDiv.className = 'zip-result error';
-        resultDiv.textContent = result.error || 'Lookup failed. Please try again.';
-        resultDiv.style.display = 'block';
+        var errorDiv = document.getElementById('step1Error');
+        errorDiv.textContent = result.error || 'Lookup failed. Please try again.';
+        errorDiv.style.display = 'block';
       }
     })
     .withFailureHandler(function(err) {
-      btn.textContent = 'Look Up';
+      btn.textContent = 'Get Community Profile';
       btn.disabled = false;
-      resultDiv.className = 'zip-result error';
-      resultDiv.textContent = 'Connection error. Please try again.';
-      resultDiv.style.display = 'block';
+      var errorDiv = document.getElementById('step1Error');
+      errorDiv.textContent = 'Connection error. Please try again.';
+      errorDiv.style.display = 'block';
     })
     .lookupCensusData(zip);
 }
