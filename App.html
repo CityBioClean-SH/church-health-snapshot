@@ -877,6 +877,90 @@
 
   .zip-result strong { font-weight: 700; }
 
+  /* Religious Profile */
+  .religious-profile {
+    margin: -12px 0 24px;
+    padding: 20px 28px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+  }
+
+  .rel-header {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 16px;
+  }
+
+  .rel-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .rel-card {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .rel-card.rel-ag {
+    background: rgba(27,37,65,0.06);
+    border: 1px solid rgba(27,37,65,0.12);
+  }
+
+  .rel-card-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-faint);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .rel-card-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.2;
+  }
+
+  .rel-card-sub {
+    font-size: 11px;
+    color: var(--text-faint);
+    margin-top: 2px;
+  }
+
+  .rel-landscape {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+
+  .rel-top3 {
+    font-size: 13px;
+    color: var(--text);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  .rel-source {
+    font-size: 10px;
+    color: var(--text-faint);
+    text-align: right;
+  }
+
+  @media (max-width: 600px) {
+    .rel-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
   /* ── SECTIONS ── */
   .section {
     margin-bottom: 24px;
@@ -1949,6 +2033,7 @@
       </div>
     </div>
     <div class="zip-result" id="zipResult" style="display:none;"></div>
+    <div class="religious-profile" id="religiousProfile" style="display:none;"></div>
 
     <!-- SECTION 1 -->
     <div class="section" id="section1">
@@ -2795,6 +2880,50 @@ function handleZipLookup() {
 
         // Update the note
         document.getElementById('demoNote').textContent = 'Census data auto-filled for ZIP ' + zip + '. You can still adjust values manually.';
+
+        // Also fetch religious data
+        google.script.run
+          .withSuccessHandler(function(rel) {
+            var relDiv = document.getElementById('religiousProfile');
+            if (rel.success) {
+              var pop = result.population || 1;
+              var unchurchedPct = Math.round((1 - rel.totalAdherents / pop) * 100);
+              if (unchurchedPct < 0) unchurchedPct = 0;
+
+              relDiv.innerHTML =
+                '<div class="rel-header">Community Religious Profile — ' + rel.county + ' County</div>' +
+                '<div class="rel-grid">' +
+                  '<div class="rel-card rel-ag">' +
+                    '<div class="rel-card-label">AG Presence</div>' +
+                    '<div class="rel-card-val">' + rel.agCongregations + ' churches</div>' +
+                    '<div class="rel-card-sub">' + rel.agAdherents.toLocaleString() + ' adherents</div>' +
+                  '</div>' +
+                  '<div class="rel-card">' +
+                    '<div class="rel-card-label">Unchurched</div>' +
+                    '<div class="rel-card-val">' + unchurchedPct + '%</div>' +
+                    '<div class="rel-card-sub">' + (pop - rel.totalAdherents).toLocaleString() + ' people</div>' +
+                  '</div>' +
+                  '<div class="rel-card">' +
+                    '<div class="rel-card-label">Evangelical</div>' +
+                    '<div class="rel-card-val">' + rel.evangelical.toLocaleString() + '</div>' +
+                    '<div class="rel-card-sub">competing audience</div>' +
+                  '</div>' +
+                  '<div class="rel-card">' +
+                    '<div class="rel-card-label">Pentecostal</div>' +
+                    '<div class="rel-card-val">' + rel.pentecostal.toLocaleString() + '</div>' +
+                    '<div class="rel-card-sub">AG peers (CoG, Foursquare, etc.)</div>' +
+                  '</div>' +
+                '</div>' +
+                '<div class="rel-landscape">' +
+                  '<div class="rel-card-label">Top 3 Denominations</div>' +
+                  '<div class="rel-top3">' + rel.top3 + '</div>' +
+                '</div>' +
+                '<div class="rel-source">Source: ' + rel.source + '</div>';
+              relDiv.style.display = 'block';
+            }
+          })
+          .withFailureHandler(function() {})
+          .lookupReligiousData(zip);
       } else {
         resultDiv.className = 'zip-result error';
         resultDiv.textContent = result.error || 'Lookup failed. Please try again.';
