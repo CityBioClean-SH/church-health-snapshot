@@ -208,6 +208,35 @@ function lookupCensusData(zip) {
   }
 }
 
+function lookupZipFromCity(cityName) {
+  try {
+    cityName = String(cityName).trim();
+    if (!cityName) return { success: false, error: 'City name is required' };
+
+    // Zippopotam supports city search: /us/{state}/{city}
+    var citySlug = cityName.toLowerCase().replace(/\s+/g, '%20');
+    var resp = UrlFetchApp.fetch('https://api.zippopotam.us/us/tx/' + citySlug, { muteHttpExceptions: true });
+    if (resp.getResponseCode() !== 200) {
+      return { success: false, error: 'City "' + cityName + '" not found in Texas' };
+    }
+
+    var data = JSON.parse(resp.getContentText());
+    if (!data.places || data.places.length === 0) {
+      return { success: false, error: 'No ZIP codes found for ' + cityName };
+    }
+
+    // Return the first ZIP code for the city
+    return {
+      success: true,
+      zip: data.places[0]['post code'],
+      cityName: data['place name'] || cityName,
+      allZips: data.places.map(function(p) { return p['post code']; })
+    };
+  } catch(e) {
+    return { success: false, error: 'City lookup failed: ' + e.message };
+  }
+}
+
 function setupAdmin() {
   // Set your admin email here, then run this function once
   const adminEmail = 'mharper@northtexas.ag';

@@ -803,7 +803,7 @@
   /* Church info header */
   .church-header {
     display: grid;
-    grid-template-columns: 1fr 1fr auto auto;
+    grid-template-columns: 1fr 1fr auto auto auto;
     gap: 16px;
     margin-bottom: 32px;
     padding: 24px 28px;
@@ -2033,9 +2033,13 @@
         <input type="text" id="pastorName" placeholder="">
       </div>
       <div class="field">
+        <label>City</label>
+        <input type="text" id="churchCity" placeholder="">
+      </div>
+      <div class="field">
         <label>ZIP Code</label>
         <div style="display:flex;gap:6px;">
-          <input type="text" id="churchZip" placeholder="75115" maxlength="5" pattern="[0-9]*" style="flex:1;">
+          <input type="text" id="churchZip" placeholder="" maxlength="5" pattern="[0-9]*" style="flex:1;">
           <button class="zip-lookup-btn" id="zipLookupBtn" onclick="handleZipLookup()">Look Up</button>
         </div>
       </div>
@@ -2833,12 +2837,44 @@ function dismissWalkthrough() {
 // ── CENSUS ZIP LOOKUP ──
 function handleZipLookup() {
   var zip = document.getElementById('churchZip').value.trim();
+  var city = document.getElementById('churchCity').value.trim();
   var btn = document.getElementById('zipLookupBtn');
   var resultDiv = document.getElementById('zipResult');
 
+  // If no ZIP but city is entered, look up ZIP from city first
+  if ((!zip || zip.length !== 5) && city) {
+    btn.textContent = 'Finding ZIP...';
+    btn.disabled = true;
+    resultDiv.style.display = 'none';
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success && result.zip) {
+          document.getElementById('churchZip').value = result.zip;
+          // Now run the full lookup with the found ZIP
+          runCensusLookup(result.zip, btn, resultDiv);
+        } else {
+          btn.textContent = 'Look Up';
+          btn.disabled = false;
+          resultDiv.className = 'zip-result error';
+          resultDiv.textContent = result.error || 'City not found. Try entering a ZIP code instead.';
+          resultDiv.style.display = 'block';
+        }
+      })
+      .withFailureHandler(function() {
+        btn.textContent = 'Look Up';
+        btn.disabled = false;
+        resultDiv.className = 'zip-result error';
+        resultDiv.textContent = 'Connection error. Try entering a ZIP code instead.';
+        resultDiv.style.display = 'block';
+      })
+      .lookupZipFromCity(city);
+    return;
+  }
+
   if (!zip || zip.length !== 5 || !/^\d{5}$/.test(zip)) {
     resultDiv.className = 'zip-result error';
-    resultDiv.textContent = 'Please enter a valid 5-digit ZIP code.';
+    resultDiv.textContent = 'Enter a city name or a 5-digit ZIP code.';
     resultDiv.style.display = 'block';
     return;
   }
@@ -2846,6 +2882,12 @@ function handleZipLookup() {
   btn.textContent = 'Looking up...';
   btn.disabled = true;
   resultDiv.style.display = 'none';
+  runCensusLookup(zip, btn, resultDiv);
+}
+
+function runCensusLookup(zip, btn, resultDiv) {
+  btn.textContent = 'Looking up...';
+  btn.disabled = true;
 
   google.script.run
     .withSuccessHandler(function(result) {
@@ -2898,6 +2940,11 @@ function handleZipLookup() {
 
         // Update the note
         document.getElementById('demoNote').textContent = 'Census data auto-filled for ZIP ' + zip + '. You can still adjust values manually.';
+
+        // Auto-fill city field if it was empty
+        if (result.cityName && !document.getElementById('churchCity').value.trim()) {
+          document.getElementById('churchCity').value = result.cityName;
+        }
 
         // Also fetch religious data
         google.script.run
