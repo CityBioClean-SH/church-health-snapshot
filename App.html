@@ -803,7 +803,7 @@
   /* Church info header */
   .church-header {
     display: grid;
-    grid-template-columns: 1fr 1fr auto auto auto;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 16px;
     margin-bottom: 32px;
     padding: 24px 28px;
@@ -839,6 +839,12 @@
     border-color: var(--gold);
     background: white;
     box-shadow: 0 0 0 3px var(--gold-dim);
+  }
+
+  .lookup-hint {
+    font-size: 11px;
+    color: var(--text-faint);
+    padding-top: 12px;
   }
 
   .zip-lookup-btn {
@@ -2033,6 +2039,10 @@
         <input type="text" id="pastorName" placeholder="">
       </div>
       <div class="field">
+        <label>Date</label>
+        <input type="text" id="assessDate" readonly>
+      </div>
+      <div class="field">
         <label>City</label>
         <input type="text" id="churchCity" placeholder="">
       </div>
@@ -2044,8 +2054,8 @@
         </div>
       </div>
       <div class="field">
-        <label>Date</label>
-        <input type="text" id="assessDate" readonly>
+        <label>&nbsp;</label>
+        <div class="lookup-hint">Enter city or ZIP, then click Look Up</div>
       </div>
     </div>
     <div class="zip-result" id="zipResult" style="display:none;"></div>
