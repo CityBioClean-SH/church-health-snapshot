@@ -2262,9 +2262,7 @@
   <div class="step-indicator" id="stepIndicator">
     <div class="step-dot active" id="stepDot1"><span>1</span><div class="step-label">Church Info</div></div>
     <div class="step-line" id="stepLine1"></div>
-    <div class="step-dot" id="stepDot2"><span>2</span><div class="step-label">Community</div></div>
-    <div class="step-line" id="stepLine2"></div>
-    <div class="step-dot" id="stepDot3"><span>3</span><div class="step-label">Assessment</div></div>
+    <div class="step-dot" id="stepDot2"><span>2</span><div class="step-label">Assessment</div></div>
   </div>
 
   <!-- ═══ STEP 1: CHURCH INFO ═══ -->
@@ -2302,33 +2300,14 @@
           </div>
         </div>
         <div class="step-hint">Enter either a city or ZIP code — we'll look up the rest.</div>
-        <button class="step-submit" id="step1Submit" onclick="handleStep1Submit()">Get Community Profile</button>
+        <button class="step-submit" id="step1Submit" onclick="handleStep1Submit()">Start Assessment</button>
         <div class="step-error" id="step1Error" style="display:none;"></div>
       </div>
     </div>
   </div>
 
-  <!-- ═══ STEP 2: COMMUNITY PROFILE ═══ -->
+  <!-- ═══ STEP 2: ASSESSMENT ═══ -->
   <div class="step-panel" id="step2" style="display:none;">
-    <div class="step-card">
-      <div class="step-card-header">
-        <h2>Community Profile</h2>
-        <p id="step2Subtitle">Here's what we found for your area.</p>
-      </div>
-      <div class="step-card-body">
-        <div class="zip-result" id="zipResult" style="display:none;"></div>
-        <!-- Religious profile hidden for now — will be placed elsewhere in assessment -->
-        <div class="religious-profile" id="religiousProfile" style="display:none;"></div>
-        <div class="step-nav">
-          <button class="step-back" onclick="goToStep(1)">Back</button>
-          <button class="step-submit" onclick="goToStep(3)">Continue to Assessment</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══ STEP 3: ASSESSMENT ═══ -->
-  <div class="step-panel" id="step3" style="display:none;">
 
   <div class="progress-strip">
     <div class="progress-inner">
@@ -2505,6 +2484,8 @@
       </div>
       <div class="section-body">
         <div class="q-note" id="demoNote">Auto-filled from U.S. Census data based on the location you entered.</div>
+        <div class="zip-result" id="zipResult" style="display:none;"></div>
+        <div class="religious-profile" id="religiousProfile" style="display:none;"></div>
         <div class="q-row static-row" data-q="q13">
           <div class="q-num done">14</div>
           <div class="q-text">City Type</div>
@@ -2621,7 +2602,7 @@
     <p style="margin-top:4px;">Target 1000 Department &middot; &copy; 2016</p>
   </div>
 
-  </div><!-- /step3 -->
+  </div><!-- /step2 -->
 
   <!-- ═══════ REPORT VIEW ═══════ -->
   <div class="report-screen" id="reportScreen">
@@ -3140,19 +3121,16 @@ function dismissWalkthrough() {
 function goToStep(step) {
   document.getElementById('step1').style.display = step === 1 ? 'block' : 'none';
   document.getElementById('step2').style.display = step === 2 ? 'block' : 'none';
-  document.getElementById('step3').style.display = step === 3 ? 'block' : 'none';
 
-  for (var i = 1; i <= 3; i++) {
+  for (var i = 1; i <= 2; i++) {
     var dot = document.getElementById('stepDot' + i);
     dot.classList.remove('active', 'done');
     if (i < step) dot.classList.add('done');
     else if (i === step) dot.classList.add('active');
   }
-  for (var j = 1; j <= 2; j++) {
-    var line = document.getElementById('stepLine' + j);
-    if (j < step) line.classList.add('done');
-    else line.classList.remove('done');
-  }
+  var line1 = document.getElementById('stepLine1');
+  if (step > 1) line1.classList.add('done');
+  else line1.classList.remove('done');
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -3188,14 +3166,14 @@ function handleStep1Submit() {
           document.getElementById('churchZip').value = result.zip;
           runCensusLookup(result.zip, btn);
         } else {
-          btn.textContent = 'Get Community Profile';
+          btn.textContent = 'Start Assessment';
           btn.disabled = false;
           errorDiv.textContent = result.error || 'City not found. Try entering a ZIP code.';
           errorDiv.style.display = 'block';
         }
       })
       .withFailureHandler(function() {
-        btn.textContent = 'Get Community Profile';
+        btn.textContent = 'Start Assessment';
         btn.disabled = false;
         errorDiv.textContent = 'Connection error. Try entering a ZIP code instead.';
         errorDiv.style.display = 'block';
@@ -3205,7 +3183,7 @@ function handleStep1Submit() {
   }
 
   if (!zip || zip.length !== 5 || !/^\d{5}$/.test(zip)) {
-    btn.textContent = 'Get Community Profile';
+    btn.textContent = 'Start Assessment';
     btn.disabled = false;
     errorDiv.textContent = 'Please enter a valid 5-digit ZIP code.';
     errorDiv.style.display = 'block';
@@ -3220,7 +3198,7 @@ function runCensusLookup(zip, btn) {
 
   google.script.run
     .withSuccessHandler(function(result) {
-      btn.textContent = 'Get Community Profile';
+      btn.textContent = 'Start Assessment';
       btn.disabled = false;
 
       if (result.success) {
@@ -3277,15 +3255,14 @@ function runCensusLookup(zip, btn) {
           document.getElementById('churchCity').value = result.cityName;
         }
 
-        // Navigate to step 2
-        document.getElementById('step2Subtitle').textContent = 'Here\'s what we found for ' + (result.cityName || 'your area') + '.';
+        // Navigate to assessment
         goToStep(2);
 
         // Religious data — fetch but don't display on Step 2 (will be shown later in assessment)
         google.script.run
           .withSuccessHandler(function(rel) {
             var relDiv = document.getElementById('religiousProfile');
-            if (rel.success && false) { // Hidden for now
+            if (rel.success) {
               // Calculate city/ZIP share of county
               var localPop = (result.cityPop > 0) ? result.cityPop : result.population;
               var localName = result.cityName || ('ZIP ' + zip);
@@ -3335,7 +3312,7 @@ function runCensusLookup(zip, btn) {
       }
     })
     .withFailureHandler(function(err) {
-      btn.textContent = 'Get Community Profile';
+      btn.textContent = 'Start Assessment';
       btn.disabled = false;
       var errorDiv = document.getElementById('step1Error');
       errorDiv.textContent = 'Connection error. Please try again.';
