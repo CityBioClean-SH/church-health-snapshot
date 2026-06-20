@@ -1182,6 +1182,23 @@
     box-shadow: 0 2px 8px rgba(27,37,65,0.18);
   }
 
+  .q-static {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--navy);
+    padding: 10px 14px;
+    background: rgba(27,37,65,0.04);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    min-width: 160px;
+    text-align: right;
+  }
+
+  .static-row {
+    background: rgba(27,37,65,0.01);
+  }
+
   .q-note {
     padding: 12px 28px 12px 72px;
     font-size: 12px;
@@ -2300,6 +2317,7 @@
       </div>
       <div class="step-card-body">
         <div class="zip-result" id="zipResult" style="display:none;"></div>
+        <!-- Religious profile hidden for now — will be placed elsewhere in assessment -->
         <div class="religious-profile" id="religiousProfile" style="display:none;"></div>
         <div class="step-nav">
           <button class="step-back" onclick="goToStep(1)">Back</button>
@@ -2406,48 +2424,7 @@
     </div>
 
     <!-- SECTION 2 -->
-    <div class="section" id="section2">
-      <div class="section-head" onclick="toggleSection('section2')">
-        <div class="sec-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
-        <h2>Community Demographics</h2>
-        <span class="sec-badge" id="s2badge">0 / 5</span>
-        <svg class="chevron" width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
-      </div>
-      <div class="section-body">
-        <div class="q-note" id="demoNote">Enter a ZIP code above to auto-fill community demographics from U.S. Census data.</div>
-        <div class="q-row" data-q="q13">
-          <div class="q-num">14</div>
-          <div class="q-text">What type of city is the church in?</div>
-          <div class="q-input"><div class="radio-group"><input type="radio" name="q13" id="q13_r" value="Rural (Under 8000)" onchange="calculate()"><label for="q13_r">Rural (&lt;8k)</label><input type="radio" name="q13" id="q13_s" value="Small city (8k-50k)" onchange="calculate()"><label for="q13_s">Small (8k-50k)</label><input type="radio" name="q13" id="q13_l" value="Large City (over 50k)" onchange="calculate()"><label for="q13_l">Large (50k+)</label><input type="radio" name="q13" id="q13_u" value="Urban/Metro (100k+)" onchange="calculate()"><label for="q13_u">Metro (100k+)</label></div></div>
-        </div>
-        <div class="q-row" data-q="q14">
-          <div class="q-num">15</div>
-          <div class="q-text">Population</div>
-          <div class="q-input"><input type="number" id="q14" placeholder="Population" min="0" oninput="calculate()"></div>
-        </div>
-        <div class="q-row" data-q="q15">
-          <div class="q-num">16</div>
-          <div class="q-text">Population change</div>
-          <div class="q-input"><div class="radio-group"><input type="radio" name="q15" id="q15_d" value="Declining" onchange="calculate()"><label for="q15_d">Declining</label><input type="radio" name="q15" id="q15_s" value="Static" onchange="calculate()"><label for="q15_s">Static</label><input type="radio" name="q15" id="q15_i" value="Increasing" onchange="calculate()"><label for="q15_i">Increasing</label></div></div>
-        </div>
-        <div class="q-row" data-q="q16">
-          <div class="q-num">17</div>
-          <div class="q-text">Median Resident Age</div>
-          <div class="q-input"><input type="number" id="q16" placeholder="Median age" min="0" max="100" oninput="calculate()"></div>
-        </div>
-        <div class="q-row" data-q="q17">
-          <div class="q-num">18</div>
-          <div class="q-text">Estimated Per Capita Income</div>
-          <div class="q-input"><input type="number" id="q17" placeholder="$ Income" min="0" oninput="calculate()"></div>
-        </div>
-        <div class="section-notes">
-          <label>Notes &amp; Observations</label>
-          <textarea id="notes2" placeholder="Add any context about the community demographics..." oninput="autoSave()"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- SECTION 3 -->
+    <!-- SECTION 2: SUBJECTIVE (moved up from Section 3) -->
     <div class="section" id="section3">
       <div class="section-head" onclick="toggleSection('section3')">
         <div class="sec-icon"><svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div>
@@ -2514,6 +2491,53 @@
         <div class="section-notes">
           <label>Notes &amp; Observations</label>
           <textarea id="notes3" placeholder="Add any subjective observations, follow-up items, or context..." oninput="autoSave()"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: COMMUNITY DEMOGRAPHICS (read-only, Census data) -->
+    <div class="section" id="section2">
+      <div class="section-head" onclick="toggleSection('section2')">
+        <div class="sec-icon"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
+        <h2>Community Demographics</h2>
+        <span class="sec-badge" id="s2badge">5 / 5</span>
+        <svg class="chevron" width="20" height="20" viewBox="0 0 20 20"><path d="M6 8l4 4 4-4" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="section-body">
+        <div class="q-note" id="demoNote">Auto-filled from U.S. Census data based on the location you entered.</div>
+        <div class="q-row static-row" data-q="q13">
+          <div class="q-num done">14</div>
+          <div class="q-text">City Type</div>
+          <div class="q-static" id="q13_display">--</div>
+          <input type="hidden" name="q13" id="q13_val">
+        </div>
+        <div class="q-row static-row" data-q="q14">
+          <div class="q-num done">15</div>
+          <div class="q-text">Population</div>
+          <div class="q-static" id="q14_display">--</div>
+          <input type="hidden" id="q14">
+        </div>
+        <div class="q-row static-row" data-q="q15">
+          <div class="q-num done">16</div>
+          <div class="q-text">Population Change</div>
+          <div class="q-static" id="q15_display">--</div>
+          <input type="hidden" name="q15" id="q15_val">
+        </div>
+        <div class="q-row static-row" data-q="q16">
+          <div class="q-num done">17</div>
+          <div class="q-text">Median Resident Age</div>
+          <div class="q-static" id="q16_display">--</div>
+          <input type="hidden" id="q16">
+        </div>
+        <div class="q-row static-row" data-q="q17">
+          <div class="q-num done">18</div>
+          <div class="q-text">Estimated Per Capita Income</div>
+          <div class="q-static" id="q17_display">--</div>
+          <input type="hidden" id="q17">
+        </div>
+        <div class="section-notes">
+          <label>Notes &amp; Observations</label>
+          <textarea id="notes2" placeholder="Add any context about the community demographics..." oninput="autoSave()"></textarea>
         </div>
       </div>
     </div>
@@ -3200,30 +3224,32 @@ function runCensusLookup(zip, btn) {
       btn.disabled = false;
 
       if (result.success) {
-        // Auto-fill demographics fields
+        // Auto-fill demographics — static read-only display + hidden inputs for scoring
+        // q13 — City type
+        var cityTypeLabels = {
+          'Rural (Under 8000)': 'Rural (Under 8,000)',
+          'Small city (8k-50k)': 'Small City (8k–50k)',
+          'Large City (over 50k)': 'Large City (50k+)',
+          'Urban/Metro (100k+)': 'Urban / Metro (100k+)'
+        };
+        document.getElementById('q13_val').value = result.cityType;
+        document.getElementById('q13_display').textContent = cityTypeLabels[result.cityType] || result.cityType;
+
         // q14 — Population
         document.getElementById('q14').value = result.population;
+        document.getElementById('q14_display').textContent = result.population.toLocaleString();
 
-        // q13 — City type (radio)
-        var cityTypeMap = {
-          'Rural (Under 8000)': 'q13_r',
-          'Small city (8k-50k)': 'q13_s',
-          'Large City (over 50k)': 'q13_l',
-          'Urban/Metro (100k+)': 'q13_u'
-        };
-        var radioId = cityTypeMap[result.cityType];
-        if (radioId) document.getElementById(radioId).checked = true;
-
-        // q15 — Population change (radio)
-        var popChangeMap = { 'Declining': 'q15_d', 'Static': 'q15_s', 'Increasing': 'q15_i' };
-        var popRadio = popChangeMap[result.popChange];
-        if (popRadio) document.getElementById(popRadio).checked = true;
+        // q15 — Population change
+        document.getElementById('q15_val').value = result.popChange;
+        document.getElementById('q15_display').textContent = result.popChange;
 
         // q16 — Median age
         document.getElementById('q16').value = result.medianAge;
+        document.getElementById('q16_display').textContent = result.medianAge;
 
         // q17 — Per capita income
         document.getElementById('q17').value = result.perCapitaIncome;
+        document.getElementById('q17_display').textContent = '$' + result.perCapitaIncome.toLocaleString();
 
         // Update progress
         calculate();
@@ -3255,11 +3281,11 @@ function runCensusLookup(zip, btn) {
         document.getElementById('step2Subtitle').textContent = 'Here\'s what we found for ' + (result.cityName || 'your area') + '.';
         goToStep(2);
 
-        // Also fetch religious data
+        // Religious data — fetch but don't display on Step 2 (will be shown later in assessment)
         google.script.run
           .withSuccessHandler(function(rel) {
             var relDiv = document.getElementById('religiousProfile');
-            if (rel.success) {
+            if (rel.success && false) { // Hidden for now
               // Calculate city/ZIP share of county
               var localPop = (result.cityPop > 0) ? result.cityPop : result.population;
               var localName = result.cityName || ('ZIP ' + zip);
@@ -3322,12 +3348,15 @@ function toggleSection(id) { document.getElementById(id).classList.toggle('colla
 
 // ── PROGRESS TRACKING (client-side, no scoring) ──
 const ALL_Q = ['q1','q2','q3','q4','q5','q6','q7','q8','q8b','q9','q10','q11','q12','q13','q14','q15','q16','q17','q18','q19','q20','q21','q22','q23','q24','q25','q26','q27','q28'];
-const RADIO_Q = ['q1','q2','q6','q7','q8','q13','q15','q18','q19','q20','q21','q22','q24','q25','q26','q27','q28'];
+const RADIO_Q = ['q1','q2','q6','q7','q8','q18','q19','q20','q21','q22','q24','q25','q26','q27','q28'];
 const S1_Q = ['q1','q2','q3','q4','q5','q6','q7','q8','q8b','q9','q10','q11','q12'];
 const S2_Q = ['q13','q14','q15','q16','q17'];
 const S3_Q = ['q18','q19','q20','q21','q22','q23','q24','q25','q26','q27','q28'];
 
 function getVal(id) {
+  // q13 and q15 are now hidden inputs (static demographics)
+  if (id === 'q13') return document.getElementById('q13_val').value;
+  if (id === 'q15') return document.getElementById('q15_val').value;
   if (RADIO_Q.includes(id)) {
     const c = document.querySelector('input[name="' + id + '"]:checked');
     return c ? c.value : '';
