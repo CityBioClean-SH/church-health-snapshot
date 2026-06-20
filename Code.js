@@ -490,11 +490,11 @@ function calculateScore(answers) {
     s3: s3,
     categories: categories,
     findings: {
-      perCapitaGiving: Math.round(perCapitaGiving),
-      potentialPerCapita: Math.round(potentialPC),
-      givingGap: Math.round(perCapitaGiving - potentialPC),
-      pastorAgeDiff: pastorAgeDiff,
-      congAgeDiff: congAgeDiff
+      perCapitaGiving: Math.round(perCapitaGiving * 100) / 100,
+      potentialPerCapita: Math.round(potentialPC * 100) / 100,
+      givingGap: Math.round((perCapitaGiving - potentialPC) * 100) / 100,
+      pastorAgeDiff: Math.round(pastorAgeDiff * 100) / 100,
+      congAgeDiff: Math.round(congAgeDiff * 100) / 100
     }
   };
 }
