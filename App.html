@@ -2886,10 +2886,6 @@ function handleZipLookup() {
           .withSuccessHandler(function(rel) {
             var relDiv = document.getElementById('religiousProfile');
             if (rel.success) {
-              var pop = result.population || 1;
-              var unchurchedPct = Math.round((1 - rel.totalAdherents / pop) * 100);
-              if (unchurchedPct < 0) unchurchedPct = 0;
-
               relDiv.innerHTML =
                 '<div class="rel-header">Community Religious Profile — ' + rel.county + ' County</div>' +
                 '<div class="rel-grid">' +
@@ -2900,8 +2896,8 @@ function handleZipLookup() {
                   '</div>' +
                   '<div class="rel-card">' +
                     '<div class="rel-card-label">Unchurched</div>' +
-                    '<div class="rel-card-val">' + unchurchedPct + '%</div>' +
-                    '<div class="rel-card-sub">' + (pop - rel.totalAdherents).toLocaleString() + ' people</div>' +
+                    '<div class="rel-card-val">' + rel.unchurchedPct + '%</div>' +
+                    '<div class="rel-card-sub">' + rel.unchurchedCount.toLocaleString() + ' people</div>' +
                   '</div>' +
                   '<div class="rel-card">' +
                     '<div class="rel-card-label">Evangelical</div>' +
