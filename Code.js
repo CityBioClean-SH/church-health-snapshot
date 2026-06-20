@@ -158,11 +158,44 @@ function lookupCensusData(zip) {
       // If older data fails, default to Static
     }
 
-    logAudit('SYSTEM', 'CENSUS_LOOKUP', 'ZIP: ' + zip + ' — ' + placeName + ', Pop: ' + population);
+    // Get city name and city population
+    var cityName = '';
+    var cityPop = 0;
+    try {
+      var zipInfoResp = UrlFetchApp.fetch('https://api.zippopotam.us/us/' + zip, { muteHttpExceptions: true });
+      if (zipInfoResp.getResponseCode() === 200) {
+        var zipInfo = JSON.parse(zipInfoResp.getContentText());
+        if (zipInfo.places && zipInfo.places.length > 0) {
+          cityName = zipInfo.places[0]['place name'];
+          var stateName = zipInfo.places[0]['state'];
+
+          // Get city population from Census
+          var placesUrl = 'https://api.census.gov/data/2022/acs/acs5?get=NAME,B01003_001E&for=place:*&in=state:48&key=' + apiKey;
+          var placesResp = UrlFetchApp.fetch(placesUrl, { muteHttpExceptions: true });
+          if (placesResp.getResponseCode() === 200) {
+            var placesData = JSON.parse(placesResp.getContentText());
+            var cityLower = cityName.toLowerCase();
+            for (var p = 1; p < placesData.length; p++) {
+              var pName = placesData[p][0].toLowerCase();
+              if (pName.indexOf(cityLower + ' city') === 0 || pName.indexOf(cityLower + ' cdp') === 0 || pName.indexOf(cityLower + ' town') === 0) {
+                cityPop = parseInt(placesData[p][1]) || 0;
+                break;
+              }
+            }
+          }
+        }
+      }
+    } catch(e) {
+      // City lookup is optional — don't fail the whole request
+    }
+
+    logAudit('SYSTEM', 'CENSUS_LOOKUP', 'ZIP: ' + zip + ' — ' + (cityName || placeName) + ', Pop: ' + population + (cityPop ? ', City Pop: ' + cityPop : ''));
 
     return {
       success: true,
       placeName: placeName,
+      cityName: cityName,
+      cityPop: cityPop,
       population: population,
       medianAge: Math.round(medianAge * 10) / 10,
       medianHouseholdIncome: medianHouseholdIncome,

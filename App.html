@@ -895,6 +895,18 @@
     margin-bottom: 16px;
   }
 
+  .rel-context {
+    font-size: 13px;
+    color: var(--text-soft);
+    line-height: 1.5;
+    margin-bottom: 14px;
+    padding: 10px 14px;
+    background: var(--bg);
+    border-radius: 8px;
+  }
+
+  .rel-context strong { color: var(--navy); }
+
   .rel-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -2869,9 +2881,15 @@ function handleZipLookup() {
         // Update progress
         calculate();
 
-        // Show success message
+        // Show success message with city name if available
+        var displayName = result.cityName ? result.cityName + ', TX' : result.placeName;
+        var cityLine = '';
+        if (result.cityName && result.cityPop > 0) {
+          cityLine = ' · <strong>' + result.cityName + '</strong> city pop: ' + result.cityPop.toLocaleString();
+        }
         resultDiv.className = 'zip-result';
-        resultDiv.innerHTML = '<strong>' + result.placeName + '</strong> — Pop: ' + result.population.toLocaleString() +
+        resultDiv.innerHTML = '<strong>' + displayName + '</strong> (ZIP ' + zip + ') — Pop: ' + result.population.toLocaleString() +
+          cityLine +
           ' · Median Age: ' + result.medianAge +
           ' · Per Capita Income: $' + result.perCapitaIncome.toLocaleString() +
           ' · Household Income: $' + result.medianHouseholdIncome.toLocaleString() +
@@ -2886,18 +2904,26 @@ function handleZipLookup() {
           .withSuccessHandler(function(rel) {
             var relDiv = document.getElementById('religiousProfile');
             if (rel.success) {
+              // Calculate city/ZIP share of county
+              var localPop = (result.cityPop > 0) ? result.cityPop : result.population;
+              var localName = result.cityName || ('ZIP ' + zip);
+              var countyPop = rel.countyPop || 1;
+              var sharePct = Math.round((localPop / countyPop) * 100);
+              if (sharePct > 100) sharePct = 100;
+
               relDiv.innerHTML =
                 '<div class="rel-header">Community Religious Profile — ' + rel.county + ' County</div>' +
+                '<div class="rel-context">' + localName + ' represents <strong>' + sharePct + '%</strong> of ' + rel.county + ' County (pop ' + countyPop.toLocaleString() + '). Religious data below reflects the full county.</div>' +
                 '<div class="rel-grid">' +
                   '<div class="rel-card rel-ag">' +
                     '<div class="rel-card-label">AG Presence</div>' +
                     '<div class="rel-card-val">' + rel.agCongregations + ' churches</div>' +
-                    '<div class="rel-card-sub">' + rel.agAdherents.toLocaleString() + ' adherents</div>' +
+                    '<div class="rel-card-sub">' + rel.agAdherents.toLocaleString() + ' adherents countywide</div>' +
                   '</div>' +
                   '<div class="rel-card">' +
                     '<div class="rel-card-label">Unchurched</div>' +
                     '<div class="rel-card-val">' + rel.unchurchedPct + '%</div>' +
-                    '<div class="rel-card-sub">' + rel.unchurchedCount.toLocaleString() + ' people</div>' +
+                    '<div class="rel-card-sub">~' + rel.unchurchedCount.toLocaleString() + ' countywide</div>' +
                   '</div>' +
                   '<div class="rel-card">' +
                     '<div class="rel-card-label">Evangelical</div>' +
