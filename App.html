@@ -1985,7 +1985,7 @@
 
   .step-line.done { background: var(--green, #059669); }
 
-  .step-panel { max-width: 680px; margin: 0 auto; padding: 0 16px; }
+  .step-panel { max-width: 900px; margin: 0 auto; padding: 0 24px; }
 
   .step-card {
     background: var(--card);
@@ -2015,6 +2015,12 @@
   }
 
   .step-card-body { padding: 28px 32px; }
+
+  .step-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px;
+  }
 
   .step-field {
     margin-bottom: 20px;
@@ -2133,6 +2139,7 @@
     .gauge-svg { width: 150px; height: 150px; }
     .gauge-score { font-size: 40px; }
     .step-row-2 { grid-template-columns: 1fr; }
+    .step-form-grid { grid-template-columns: 1fr; }
     .step-line { width: 30px; }
     .rel-grid { grid-template-columns: repeat(2, 1fr); }
     .section-head h2 { font-size: 15px; }
@@ -2251,15 +2258,15 @@
         <p>We'll use this to pull community data for your area.</p>
       </div>
       <div class="step-card-body">
-        <div class="step-field">
-          <label>Church Name</label>
-          <input type="text" id="churchName" placeholder="" autocomplete="off">
-        </div>
-        <div class="step-field">
-          <label>Pastor / Leader Name</label>
-          <input type="text" id="pastorName" placeholder="" autocomplete="off">
-        </div>
-        <div class="step-row-2">
+        <div class="step-form-grid">
+          <div class="step-field">
+            <label>Church Name</label>
+            <input type="text" id="churchName" placeholder="" autocomplete="off">
+          </div>
+          <div class="step-field">
+            <label>Pastor / Leader Name</label>
+            <input type="text" id="pastorName" placeholder="" autocomplete="off">
+          </div>
           <div class="step-field">
             <label>City</label>
             <input type="text" id="churchCity" placeholder="" autocomplete="off">
@@ -2268,8 +2275,6 @@
             <label>State</label>
             <select id="churchState"><option value="TX" selected>Texas</option></select>
           </div>
-        </div>
-        <div class="step-row-2">
           <div class="step-field">
             <label>ZIP Code</label>
             <input type="text" id="churchZip" placeholder="" maxlength="5" pattern="[0-9]*" inputmode="numeric" autocomplete="off">
