@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --navy: #1b2541; --gold: #c9a227; --cream: #fdfcf8;
+    --border: #e5e1d8; --text: #1f2937; --text-soft: #4b5563; --text-faint: #9ca3af;
+  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--navy); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+  .onboard-card {
+    background: var(--cream); border-radius: 12px; max-width: 640px; width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;
+  }
+  .onboard-header {
+    background: var(--navy); padding: 32px 28px; text-align: center; color: white;
+  }
+  .onboard-header h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; font-weight: 500; }
+  .onboard-header p { color: var(--gold); font-size: 13px; margin-top: 6px; letter-spacing: 1px; text-transform: uppercase; }
+
+  .onboard-body { padding: 28px; }
+  .onboard-body p.intro { font-size: 14px; color: var(--text-soft); line-height: 1.6; margin-bottom: 24px; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-faint); margin-bottom: 6px; font-weight: 600; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 15px; color: var(--text); background: white; outline: none;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: var(--gold); }
+  .form-row { display: flex; gap: 14px; }
+  .form-row .form-group { flex: 1; }
+
+  .county-section { margin-top: 8px; }
+  .county-section h3 { font-size: 14px; color: var(--navy); margin-bottom: 8px; }
+  .county-grid {
+    max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 12px; background: white; display: none;
+  }
+  .county-grid.visible { display: block; }
+  .county-search {
+    width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 13px; margin-bottom: 8px; outline: none; display: none;
+  }
+  .county-search.visible { display: block; }
+  .county-item {
+    display: flex; align-items: center; gap: 8px; padding: 5px 0;
+    font-size: 14px; color: var(--text); cursor: pointer;
+  }
+  .county-item:hover { color: var(--navy); }
+  .county-item input[type="checkbox"] { accent-color: var(--gold); width: 16px; height: 16px; cursor: pointer; }
+  .county-count { font-size: 12px; color: var(--text-faint); margin-top: 6px; }
+
+  .submit-btn {
+    width: 100%; padding: 14px; background: var(--navy); color: white; border: none;
+    border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px;
+  }
+  .submit-btn:hover { background: #243052; }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .msg { padding: 12px; border-radius: 6px; font-size: 14px; margin-top: 12px; display: none; }
+  .msg.success { display: block; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+  .msg.error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+  .success-screen { display: none; text-align: center; padding: 40px 28px; }
+  .success-screen h2 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; color: var(--navy); margin-bottom: 12px; }
+  .success-screen p { font-size: 14px; color: var(--text-soft); line-height: 1.6; }
+  .success-icon { font-size: 48px; margin-bottom: 16px; }
+
+  @media (max-width: 600px) {
+    .form-row { flex-direction: column; gap: 0; }
+    .onboard-body { padding: 20px; }
+  }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="onboard-card">
+  <div class="onboard-header">
+    <h1>Church Health Snapshot</h1>
+    <p>District Onboarding</p>
+  </div>
+
+  <div class="onboard-body" id="formView">
+    <p class="intro">Set up your district to start assessing church health. Fill out the information below and we'll get you started.</p>
+
+    <div class="form-group">
+      <label>District / Network Name</label>
+      <input type="text" id="obOrgName" placeholder="e.g., West Florida Ministry Network">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>State</label>
+        <select id="obState" onchange="handleStateChange()">
+          <option value="">Select state...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Denomination</label>
+        <select id="obDenom">
+          <option value="">Loading...</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Admin Name</label>
+        <input type="text" id="obAdminName" placeholder="Your full name">
+      </div>
+      <div class="form-group">
+        <label>Admin Email</label>
+        <input type="email" id="obAdminEmail" placeholder="you@district.org">
+      </div>
+    </div>
+
+    <div class="county-section">
+      <h3>Select Your Counties</h3>
+      <input type="text" class="county-search" id="countySearch" placeholder="Search counties..." oninput="filterCounties()">
+      <div class="county-grid" id="countyGrid"></div>
+      <div class="county-count" id="countyCount"></div>
+    </div>
+
+    <div class="msg" id="obMsg"></div>
+    <button class="submit-btn" id="obSubmitBtn" onclick="handleSubmit()">Submit Request</button>
+  </div>
+
+  <div class="success-screen" id="successView">
+    <div class="success-icon">&#10003;</div>
+    <h2>Request Submitted</h2>
+    <p>Your district onboarding request has been received. You'll receive a welcome email once approved — typically within 24 hours.</p>
+    <p style="margin-top:16px;color:var(--text-faint);font-size:13px;">You can close this page.</p>
+  </div>
+</div>
+
+<script>
+var allCounties = [];
+var selectedCounties = [];
+var denomData = [];
+
+// Load denominations and state list on page load
+function init() {
+  // Populate state dropdown
+  var states = [
+    'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut',
+    'Delaware','District of Columbia','Florida','Georgia','Hawaii','Idaho','Illinois',
+    'Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts',
+    'Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada',
+    'New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota',
+    'Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina',
+    'South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington',
+    'West Virginia','Wisconsin','Wyoming'
+  ];
+  var sel = document.getElementById('obState');
+  states.forEach(function(s) {
+    var opt = document.createElement('option');
+    opt.value = s; opt.textContent = s;
+    sel.appendChild(opt);
+  });
+
+  // Load denominations
+  google.script.run
+    .withSuccessHandler(function(result) {
+      var sel = document.getElementById('obDenom');
+      sel.innerHTML = '<option value="">Select denomination...</option>';
+      if (result.success) {
+        denomData = result.denominations;
+        denomData.forEach(function(d) {
+          var opt = document.createElement('option');
+          opt.value = d.code;
+          opt.textContent = d.name;
+          opt.setAttribute('data-name', d.name);
+          sel.appendChild(opt);
+        });
+      }
+    })
+    .withFailureHandler(function() {
+      document.getElementById('obDenom').innerHTML = '<option value="">Failed to load</option>';
+    })
+    .getDenominations();
+}
+
+function handleStateChange() {
+  var state = document.getElementById('obState').value;
+  var grid = document.getElementById('countyGrid');
+  var search = document.getElementById('countySearch');
+  var countEl = document.getElementById('countyCount');
+
+  if (!state) {
+    grid.classList.remove('visible');
+    search.classList.remove('visible');
+    countEl.textContent = '';
+    return;
+  }
+
+  grid.innerHTML = '<p style="color:var(--text-faint);font-size:13px;padding:8px 0;">Loading counties...</p>';
+  grid.classList.add('visible');
+  search.classList.remove('visible');
+  selectedCounties = [];
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success && result.counties.length > 0) {
+        allCounties = result.counties;
+        renderCounties(allCounties);
+        search.classList.add('visible');
+        search.value = '';
+        countEl.textContent = '0 of ' + allCounties.length + ' counties selected';
+      } else {
+        grid.innerHTML = '<p style="color:var(--text-faint);font-size:13px;padding:8px 0;">No counties found for ' + state + '.</p>';
+      }
+    })
+    .withFailureHandler(function() {
+      grid.innerHTML = '<p style="color:#991b1b;font-size:13px;padding:8px 0;">Failed to load counties.</p>';
+    })
+    .getCountiesByState(state);
+}
+
+function renderCounties(counties) {
+  var grid = document.getElementById('countyGrid');
+  var html = '';
+  counties.forEach(function(c) {
+    var checked = selectedCounties.indexOf(c.fips) >= 0 ? ' checked' : '';
+    html += '<label class="county-item"><input type="checkbox" value="' + c.fips + '"' + checked + ' onchange="toggleCounty(this)">' + c.county + '</label>';
+  });
+  grid.innerHTML = html;
+}
+
+function toggleCounty(cb) {
+  var fips = cb.value;
+  if (cb.checked) {
+    if (selectedCounties.indexOf(fips) === -1) selectedCounties.push(fips);
+  } else {
+    selectedCounties = selectedCounties.filter(function(f) { return f !== fips; });
+  }
+  document.getElementById('countyCount').textContent = selectedCounties.length + ' of ' + allCounties.length + ' counties selected';
+}
+
+function filterCounties() {
+  var q = document.getElementById('countySearch').value.toLowerCase().trim();
+  var filtered = allCounties.filter(function(c) { return c.county.toLowerCase().indexOf(q) >= 0; });
+  renderCounties(filtered);
+}
+
+function handleSubmit() {
+  var orgName = document.getElementById('obOrgName').value.trim();
+  var state = document.getElementById('obState').value;
+  var denomSel = document.getElementById('obDenom');
+  var denomCode = denomSel.value;
+  var denomName = denomCode ? denomSel.options[denomSel.selectedIndex].getAttribute('data-name') : '';
+  var adminName = document.getElementById('obAdminName').value.trim();
+  var adminEmail = document.getElementById('obAdminEmail').value.trim();
+
+  var msgEl = document.getElementById('obMsg');
+  msgEl.className = 'msg'; msgEl.style.display = 'none';
+
+  // Validate
+  if (!orgName) { showError('District name is required.'); return; }
+  if (!state) { showError('Please select a state.'); return; }
+  if (!denomCode) { showError('Please select a denomination.'); return; }
+  if (!adminName) { showError('Admin name is required.'); return; }
+  if (!adminEmail || adminEmail.indexOf('@') === -1) { showError('Valid email is required.'); return; }
+  if (selectedCounties.length === 0) { showError('Please select at least one county.'); return; }
+
+  var btn = document.getElementById('obSubmitBtn');
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      btn.textContent = 'Submit Request';
+      btn.disabled = false;
+      if (result.success) {
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('successView').style.display = 'block';
+      } else {
+        showError(result.error || 'Submission failed.');
+      }
+    })
+    .withFailureHandler(function(err) {
+      btn.textContent = 'Submit Request';
+      btn.disabled = false;
+      showError('Connection error. Please try again.');
+    })
+    .submitOnboardRequest({
+      orgName: orgName,
+      state: state,
+      denomCode: denomCode,
+      denomName: denomName,
+      adminName: adminName,
+      adminEmail: adminEmail,
+      counties: selectedCounties
+    });
+}
+
+function showError(msg) {
+  var el = document.getElementById('obMsg');
+  el.className = 'msg error';
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+init();
+</script>
+</body>
+</html>

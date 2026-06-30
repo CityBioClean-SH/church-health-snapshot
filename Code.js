@@ -5,6 +5,7 @@
  */
 
 const SPREADSHEET_ID = '1f_zyugFWUkuepoGJA0MEGx2lM3i3xDHb8PcOJiNqXCQ';
+const REFERENCE_SPREADSHEET_ID = '1LprfzdsT3IbRxfYFAWjdphRl9rqweovcVj4oF8K1WSM';
 const ADMIN_EMAIL = ''; // Set via setupAdmin()
 
 // ── SETUP ──
@@ -88,6 +89,76 @@ function resetUsersSheet() {
   Logger.log('Users sheet reset with FirstLogin column. Steve + Mike added as Admin.');
 }
 
+// ── MULTI-TENANT MIGRATION (run once) ──
+
+function setupMultiTenant() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+  // Add OrgID column (J) to Users if not present
+  var users = ss.getSheetByName('Users');
+  var headers = users.getRange(1, 1, 1, users.getLastColumn()).getValues()[0];
+  if (headers.indexOf('OrgID') === -1) {
+    var nextCol = headers.length + 1;
+    users.getRange(1, nextCol).setValue('OrgID').setFontWeight('bold');
+    // Set existing users to 'NT' (North Texas)
+    var lastRow = users.getLastRow();
+    if (lastRow > 1) {
+      for (var i = 2; i <= lastRow; i++) {
+        users.getRange(i, nextCol).setValue('NT');
+      }
+    }
+    Logger.log('Added OrgID column to Users. Existing users set to NT.');
+  }
+
+  // Create Organizations sheet if not present
+  if (!ss.getSheetByName('Organizations')) {
+    var orgSheet = ss.insertSheet('Organizations');
+    orgSheet.appendRow([
+      'OrgID', 'OrgName', 'State', 'DenominationCode', 'DenominationName',
+      'AdminName', 'AdminEmail', 'AdminNotifyEmail', 'Status', 'DateCreated', 'Counties'
+    ]);
+    orgSheet.getRange(1, 1, 1, 11).setFontWeight('bold').setBackground('#1b2541').setFontColor('white');
+    // Add North Texas as first org
+    orgSheet.appendRow([
+      'NT', 'North Texas District', 'Texas', '053', 'Assemblies of God',
+      'Mike Harper', 'mharper@northtexas.ag', 'mharper@northtexas.ag',
+      'Active', new Date(), ''
+    ]);
+    Logger.log('Created Organizations sheet with North Texas.');
+  }
+
+  // Create Churches sheet if not present
+  if (!ss.getSheetByName('Churches')) {
+    var churchSheet = ss.insertSheet('Churches');
+    churchSheet.appendRow([
+      'ChurchID', 'OrgID', 'ChurchName', 'City', 'State', 'ZIP',
+      'PastorName', 'PastorEmail', 'SectionLeaderRow', 'Status', 'DateAdded'
+    ]);
+    churchSheet.getRange(1, 1, 1, 11).setFontWeight('bold').setBackground('#1b2541').setFontColor('white');
+    Logger.log('Created Churches sheet.');
+  }
+
+  // Add OrgID and ChurchID columns to Assessments if not present
+  var assess = ss.getSheetByName('Assessments');
+  var aHeaders = assess.getRange(1, 1, 1, assess.getLastColumn()).getValues()[0];
+  if (aHeaders.indexOf('OrgID') === -1) {
+    var nextCol = aHeaders.length + 1;
+    assess.getRange(1, nextCol).setValue('OrgID').setFontWeight('bold');
+    assess.getRange(1, nextCol + 1).setValue('ChurchID').setFontWeight('bold');
+    assess.getRange(1, nextCol + 2).setValue('AssessorRole').setFontWeight('bold');
+    // Tag existing assessments as NT
+    var lastRow = assess.getLastRow();
+    if (lastRow > 1) {
+      for (var i = 2; i <= lastRow; i++) {
+        assess.getRange(i, nextCol).setValue('NT');
+      }
+    }
+    Logger.log('Added OrgID, ChurchID, AssessorRole columns to Assessments.');
+  }
+
+  Logger.log('Multi-tenant migration complete.');
+}
+
 function setupCensusKey() {
   PropertiesService.getScriptProperties().setProperty('CENSUS_API_KEY', 'b084691f5c7c1ab4b82caec5dbf0988f2d31dca8');
   Logger.log('Census API key stored in Script Properties.');
@@ -158,8 +229,10 @@ function lookupCensusData(zip) {
       // If older data fails, default to Static
     }
 
-    // Get city name and city population
+    // Get city name, state, and city population
     var cityName = '';
+    var stateName = '';
+    var stateAbbr = '';
     var cityPop = 0;
     try {
       var zipInfoResp = UrlFetchApp.fetch('https://api.zippopotam.us/us/' + zip, { muteHttpExceptions: true });
@@ -167,10 +240,13 @@ function lookupCensusData(zip) {
         var zipInfo = JSON.parse(zipInfoResp.getContentText());
         if (zipInfo.places && zipInfo.places.length > 0) {
           cityName = zipInfo.places[0]['place name'];
-          var stateName = zipInfo.places[0]['state'];
+          stateName = zipInfo.places[0]['state'];
+          stateAbbr = zipInfo.places[0]['state abbreviation'] || '';
 
-          // Get city population from Census
-          var placesUrl = 'https://api.census.gov/data/2022/acs/acs5?get=NAME,B01003_001E&for=place:*&in=state:48&key=' + apiKey;
+          // Get city population from Census using the correct state FIPS
+          var stateFipsMap = {'AL':'01','AK':'02','AZ':'04','AR':'05','CA':'06','CO':'08','CT':'09','DE':'10','DC':'11','FL':'12','GA':'13','HI':'15','ID':'16','IL':'17','IN':'18','IA':'19','KS':'20','KY':'21','LA':'22','ME':'23','MD':'24','MA':'25','MI':'26','MN':'27','MS':'28','MO':'29','MT':'30','NE':'31','NV':'32','NH':'33','NJ':'34','NM':'35','NY':'36','NC':'37','ND':'38','OH':'39','OK':'40','OR':'41','PA':'42','RI':'44','SC':'45','SD':'46','TN':'47','TX':'48','UT':'49','VT':'50','VA':'51','WA':'53','WV':'54','WI':'55','WY':'56'};
+          var sFips = stateFipsMap[stateAbbr] || '48';
+          var placesUrl = 'https://api.census.gov/data/2022/acs/acs5?get=NAME,B01003_001E&for=place:*&in=state:' + sFips + '&key=' + apiKey;
           var placesResp = UrlFetchApp.fetch(placesUrl, { muteHttpExceptions: true });
           if (placesResp.getResponseCode() === 200) {
             var placesData = JSON.parse(placesResp.getContentText());
@@ -189,12 +265,14 @@ function lookupCensusData(zip) {
       // City lookup is optional — don't fail the whole request
     }
 
-    logAudit('SYSTEM', 'CENSUS_LOOKUP', 'ZIP: ' + zip + ' — ' + (cityName || placeName) + ', Pop: ' + population + (cityPop ? ', City Pop: ' + cityPop : ''));
+    logAudit('SYSTEM', 'CENSUS_LOOKUP', 'ZIP: ' + zip + ' — ' + (cityName || placeName) + (stateAbbr ? ', ' + stateAbbr : '') + ', Pop: ' + population + (cityPop ? ', City Pop: ' + cityPop : ''));
 
     return {
       success: true,
       placeName: placeName,
       cityName: cityName,
+      stateName: stateName,
+      stateAbbr: stateAbbr,
       cityPop: cityPop,
       population: population,
       medianAge: Math.round(medianAge * 10) / 10,
@@ -208,16 +286,26 @@ function lookupCensusData(zip) {
   }
 }
 
-function lookupZipFromCity(cityName) {
+function lookupZipFromCity(cityName, stateCode) {
   try {
     cityName = String(cityName).trim();
     if (!cityName) return { success: false, error: 'City name is required' };
+    stateCode = String(stateCode || '').toLowerCase().trim();
 
-    // Zippopotam supports city search: /us/{state}/{city}
+    if (!stateCode) {
+      return { success: false, error: 'Enter a state abbreviation with the city, or use a ZIP code instead.' };
+    }
+
+    // Accept full state names — convert to abbreviation
+    var stateMap = {'alabama':'al','alaska':'ak','arizona':'az','arkansas':'ar','california':'ca','colorado':'co','connecticut':'ct','delaware':'de','district of columbia':'dc','florida':'fl','georgia':'ga','hawaii':'hi','idaho':'id','illinois':'il','indiana':'in','iowa':'ia','kansas':'ks','kentucky':'ky','louisiana':'la','maine':'me','maryland':'md','massachusetts':'ma','michigan':'mi','minnesota':'mn','mississippi':'ms','missouri':'mo','montana':'mt','nebraska':'ne','nevada':'nv','new hampshire':'nh','new jersey':'nj','new mexico':'nm','new york':'ny','north carolina':'nc','north dakota':'nd','ohio':'oh','oklahoma':'ok','oregon':'or','pennsylvania':'pa','rhode island':'ri','south carolina':'sc','south dakota':'sd','tennessee':'tn','texas':'tx','utah':'ut','vermont':'vt','virginia':'va','washington':'wa','west virginia':'wv','wisconsin':'wi','wyoming':'wy'};
+    if (stateCode.length > 2 && stateMap[stateCode]) {
+      stateCode = stateMap[stateCode];
+    }
+
     var citySlug = cityName.toLowerCase().replace(/\s+/g, '%20');
-    var resp = UrlFetchApp.fetch('https://api.zippopotam.us/us/tx/' + citySlug, { muteHttpExceptions: true });
+    var resp = UrlFetchApp.fetch('https://api.zippopotam.us/us/' + stateCode + '/' + citySlug, { muteHttpExceptions: true });
     if (resp.getResponseCode() !== 200) {
-      return { success: false, error: 'City "' + cityName + '" not found in Texas' };
+      return { success: false, error: 'City "' + cityName + '" not found in ' + stateCode.toUpperCase() + '. Try entering a ZIP code.' };
     }
 
     var data = JSON.parse(resp.getContentText());
@@ -238,17 +326,42 @@ function lookupZipFromCity(cityName) {
 }
 
 function setupAdmin() {
-  // Set your admin email here, then run this function once
   const adminEmail = 'mharper@northtexas.ag';
   PropertiesService.getScriptProperties().setProperty('ADMIN_EMAIL', adminEmail);
   Logger.log('Admin email set to: ' + adminEmail);
 }
 
+function setupPlatformOwner() {
+  // Set Steve as PlatformOwner and configure notification email
+  PropertiesService.getScriptProperties().setProperty('PLATFORM_OWNER_EMAIL', 'steve@citybioclean.com');
+
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var users = ss.getSheetByName('Users');
+  var data = users.getDataRange().getValues();
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === '1234') { // Steve's PIN
+      users.getRange(i + 1, 4).setValue('PlatformOwner');
+      Logger.log('Steve Harper (row ' + (i + 1) + ') set to PlatformOwner');
+      break;
+    }
+  }
+  Logger.log('PLATFORM_OWNER_EMAIL set to steve@citybioclean.com');
+}
+
 // ── WEB APP ──
 
 function doGet(e) {
-  return HtmlService.createHtmlOutputFromFile('App')
-    .setTitle('Church Health Snapshot')
+  var page = (e && e.parameter && e.parameter.p) ? e.parameter.p : 'app';
+  var file = 'App';
+  var title = 'Church Health Snapshot';
+
+  if (page === 'onboard') {
+    file = 'Onboard';
+    title = 'Join Church Health Snapshot';
+  }
+
+  return HtmlService.createHtmlOutputFromFile(file)
+    .setTitle(title)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
@@ -260,20 +373,22 @@ function verifyPIN(pin) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const users = ss.getSheetByName('Users');
     const data = users.getDataRange().getValues();
+    var headers = data[0];
+    var orgIdCol = headers.indexOf('OrgID');
 
     for (let i = 1; i < data.length; i++) {
       if (String(data[i][0]) === String(pin) && data[i][7] === 'Y') {
-        // Update last login
         users.getRange(i + 1, 7).setValue(new Date());
 
-        // Check firstLogin flag
         var isFirstLogin = (data[i][8] === 'Y');
         if (isFirstLogin) {
-          users.getRange(i + 1, 9).setValue('N'); // Flip to N after first login
+          users.getRange(i + 1, 9).setValue('N');
         }
 
-        // Audit log
-        logAudit(data[i][1], 'LOGIN', 'PIN login successful' + (isFirstLogin ? ' (first time)' : ''));
+        var orgId = orgIdCol >= 0 ? String(data[i][orgIdCol]) : '';
+        var org = orgId ? getOrgById_(orgId) : null;
+
+        logAudit(data[i][1], 'LOGIN', 'PIN login successful' + (isFirstLogin ? ' (first time)' : '') + (orgId ? ' [' + orgId + ']' : ''));
 
         return {
           success: true,
@@ -281,7 +396,11 @@ function verifyPIN(pin) {
           email: data[i][2],
           role: data[i][3],
           church: data[i][4],
-          firstLogin: isFirstLogin
+          firstLogin: isFirstLogin,
+          orgId: orgId,
+          orgName: org ? org.orgName : '',
+          denomName: org ? org.denominationName : 'Assemblies of God',
+          userRow: i + 1
         };
       }
     }
@@ -298,19 +417,22 @@ function verifyEmail(email, password) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const users = ss.getSheetByName('Users');
     const data = users.getDataRange().getValues();
+    var headers = data[0];
+    var orgIdCol = headers.indexOf('OrgID');
 
     for (let i = 1; i < data.length; i++) {
       if (String(data[i][2]).toLowerCase() === String(email).toLowerCase() && data[i][7] === 'Y') {
-        // Update last login
         users.getRange(i + 1, 7).setValue(new Date());
 
-        // Check firstLogin flag
         var isFirstLogin = (data[i][8] === 'Y');
         if (isFirstLogin) {
           users.getRange(i + 1, 9).setValue('N');
         }
 
-        logAudit(data[i][1], 'LOGIN', 'Email login: ' + email + (isFirstLogin ? ' (first time)' : ''));
+        var orgId = orgIdCol >= 0 ? String(data[i][orgIdCol]) : '';
+        var org = orgId ? getOrgById_(orgId) : null;
+
+        logAudit(data[i][1], 'LOGIN', 'Email login: ' + email + (isFirstLogin ? ' (first time)' : '') + (orgId ? ' [' + orgId + ']' : ''));
 
         return {
           success: true,
@@ -318,7 +440,11 @@ function verifyEmail(email, password) {
           email: data[i][2],
           role: data[i][3],
           church: data[i][4],
-          firstLogin: isFirstLogin
+          firstLogin: isFirstLogin,
+          orgId: orgId,
+          orgName: org ? org.orgName : '',
+          denomName: org ? org.denominationName : 'Assemblies of God',
+          userRow: i + 1
         };
       }
     }
@@ -506,10 +632,8 @@ function submitAssessment(data) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const assess = ss.getSheetByName('Assessments');
 
-    // Calculate score server-side
     const result = calculateScore(data.answers);
 
-    // Build row
     const a = data.answers;
     const row = [
       new Date(),
@@ -523,15 +647,17 @@ function submitAssessment(data) {
       a.q18, a.q19, a.q20, a.q21, a.q22, a.q23,
       a.q24, a.q25, a.q26, a.q27, a.q28,
       data.notes1 || '', data.notes2 || '', data.notes3 || '',
-      result.score, result.rating, result.s1, result.s2, result.s3
+      result.score, result.rating, result.s1, result.s2, result.s3,
+      data.orgId || '', data.churchId || '', data.userRole || ''
     ];
 
     assess.appendRow(row);
 
-    // Audit log
-    logAudit(data.userName, 'SUBMIT', data.churchName + ' — Score: ' + result.score + ' (' + result.rating + ')');
+    logAudit(data.userName, 'SUBMIT',
+      data.churchName + ' — Score: ' + result.score + ' (' + result.rating + ')' +
+      (data.orgId ? ' [' + data.orgId + ']' : ''));
 
-    // Silent admin email
+    // Send admin email to org's admin, not hardcoded
     sendAdminCopy(data, result);
 
     return {
@@ -600,35 +726,100 @@ function sendAdminCopy(data, result) {
 
 // ── ADMIN: GET ALL ASSESSMENTS ──
 
-function getAssessments(userRole) {
+/**
+ * Get assessments scoped by role:
+ *  - PlatformOwner: all assessments across all orgs
+ *  - Admin: all assessments for their org
+ *  - SectionLeader: assessments for their assigned churches (theirs + pastor's)
+ *  - Pastor: only their own assessments
+ */
+function getAssessments(params) {
   try {
+    var userRole = params.userRole || params;
+    var orgId = params.orgId || '';
+    var userName = params.userName || '';
+    var userRow = params.userRow || 0;
+
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const assess = ss.getSheetByName('Assessments');
     const data = assess.getDataRange().getValues();
 
     if (data.length <= 1) return { success: true, assessments: [] };
 
-    const headers = data[0];
-    const assessments = [];
+    var headers = data[0];
+    var orgIdCol = headers.indexOf('OrgID');
+    var assessorRoleCol = headers.indexOf('AssessorRole');
 
+    // Get section leader's churches if applicable
+    var myChurches = [];
+    if (userRole === 'SectionLeader' && userRow) {
+      myChurches = getChurchesForSectionLeader_(userRow);
+    }
+
+    const assessments = [];
     for (let i = 1; i < data.length; i++) {
+      var rowOrgId = orgIdCol >= 0 ? String(data[i][orgIdCol]) : '';
+      var churchName = data[i][3];
+      var assessedBy = data[i][1];
+
+      // Filter by role
+      if (userRole === 'PlatformOwner') {
+        // See everything
+      } else if (userRole === 'Admin') {
+        if (orgId && rowOrgId !== orgId) continue;
+      } else if (userRole === 'SectionLeader') {
+        if (orgId && rowOrgId !== orgId) continue;
+        // Only see assessments for churches they oversee
+        var isMyChurch = myChurches.some(function(c) {
+          return c.toLowerCase() === String(churchName).toLowerCase();
+        });
+        if (!isMyChurch) continue;
+      } else if (userRole === 'Pastor') {
+        // Only see their own assessments
+        if (assessedBy !== userName) continue;
+      } else {
+        // Unknown role — show nothing
+        continue;
+      }
+
       assessments.push({
         timestamp: data[i][0],
         assessedBy: data[i][1],
         role: data[i][2],
-        churchName: data[i][3],
+        assessorRole: assessorRoleCol >= 0 ? data[i][assessorRoleCol] : data[i][2],
+        churchName: churchName,
         pastorName: data[i][4],
         score: data[i][37],
         rating: data[i][38],
         s1: data[i][39],
         s2: data[i][40],
-        s3: data[i][41]
+        s3: data[i][41],
+        orgId: rowOrgId
       });
     }
 
     return { success: true, assessments: assessments };
   } catch(e) {
-    return { success: false, error: 'Failed to load assessments' };
+    return { success: false, error: 'Failed to load assessments: ' + e.message };
+  }
+}
+
+/** Get church names assigned to a section leader */
+function getChurchesForSectionLeader_(userRow) {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var churches = ss.getSheetByName('Churches');
+    if (!churches) return [];
+    var data = churches.getDataRange().getValues();
+    var names = [];
+    for (var i = 1; i < data.length; i++) {
+      if (Number(data[i][8]) === Number(userRow) && data[i][9] === 'Active') {
+        names.push(String(data[i][2]));
+      }
+    }
+    return names;
+  } catch(e) {
+    return [];
   }
 }
 
@@ -637,10 +828,10 @@ function getAssessments(userRole) {
 function addUser(data) {
   try {
     var pin = data.pin, name = data.name, email = data.email, role = data.role, church = data.church;
+    var orgId = data.orgId || '';
     var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     var users = ss.getSheetByName('Users');
 
-    // Check for duplicate PIN
     var existing = users.getDataRange().getValues();
     for (var i = 1; i < existing.length; i++) {
       if (String(existing[i][0]) === String(pin)) {
@@ -648,12 +839,11 @@ function addUser(data) {
       }
     }
 
-    users.appendRow([String(pin), name, email || '', role, church || '', new Date(), '', 'Y', 'Y']);
-    logAudit('ADMIN', 'USER_ADDED', name + ' (' + role + ')');
+    users.appendRow([String(pin), name, email || '', role, church || '', new Date(), '', 'Y', 'Y', orgId]);
+    logAudit('ADMIN', 'USER_ADDED', name + ' (' + role + ')' + (orgId ? ' [' + orgId + ']' : ''));
 
-    // Send welcome email
     if (email) {
-      sendWelcomeEmail(name, email, pin, role);
+      sendWelcomeEmail(name, email, pin, role, orgId);
     }
 
     return { success: true };
@@ -662,15 +852,17 @@ function addUser(data) {
   }
 }
 
-function sendWelcomeEmail(name, email, pin, role) {
+function sendWelcomeEmail(name, email, pin, role, orgId) {
   try {
     var appUrl = ScriptApp.getService().getUrl();
-    var adminEmail = PropertiesService.getScriptProperties().getProperty('ADMIN_EMAIL') || '';
+    var org = orgId ? getOrgById_(orgId) : null;
+    var orgName = org ? org.orgName : 'Church Health Snapshot';
+    var adminEmail = org ? (org.adminNotifyEmail || org.adminEmail) : (PropertiesService.getScriptProperties().getProperty('ADMIN_EMAIL') || '');
 
     var body = '<div style="font-family:\'Segoe UI\',sans-serif;max-width:560px;margin:0 auto;">' +
       '<div style="background:#1b2541;padding:28px 24px;border-radius:10px 10px 0 0;text-align:center;">' +
         '<h1 style="margin:0;color:white;font-size:22px;">Welcome to Church Health Snapshot</h1>' +
-        '<p style="margin:6px 0 0;color:#c9a227;font-size:13px;">North Texas Assemblies of God</p>' +
+        '<p style="margin:6px 0 0;color:#c9a227;font-size:13px;">' + orgName + '</p>' +
       '</div>' +
       '<div style="padding:28px 24px;border:1px solid #e5e1d8;border-top:none;border-radius:0 0 10px 10px;background:#fdfcf8;">' +
         '<p style="font-size:15px;color:#1f2937;">Hi ' + name + ',</p>' +
@@ -708,14 +900,24 @@ function sendWelcomeEmail(name, email, pin, role) {
   }
 }
 
-function getUsers() {
+function getUsers(params) {
   try {
+    var orgId = (params && params.orgId) ? params.orgId : '';
+    var callerRole = (params && params.userRole) ? params.userRole : '';
+
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const users = ss.getSheetByName('Users');
     const data = users.getDataRange().getValues();
+    var headers = data[0];
+    var orgIdCol = headers.indexOf('OrgID');
 
     const userList = [];
     for (let i = 1; i < data.length; i++) {
+      var rowOrgId = orgIdCol >= 0 ? String(data[i][orgIdCol]) : '';
+
+      // Org scoping: Admin sees only their org, PlatformOwner sees all
+      if (callerRole !== 'PlatformOwner' && orgId && rowOrgId !== orgId) continue;
+
       userList.push({
         row: i + 1,
         pin: String(data[i][0]),
@@ -725,7 +927,8 @@ function getUsers() {
         church: data[i][4],
         registered: data[i][5],
         lastLogin: data[i][6],
-        active: data[i][7]
+        active: data[i][7],
+        orgId: rowOrgId
       });
     }
 
@@ -786,11 +989,499 @@ function toggleUserActive(data) {
   }
 }
 
-// ── NORTH TEXAS RELIGIOUS DATA (ARDA 2020 US Religion Census) ──
+// ── CHURCH MANAGEMENT ──
 
-var NT_ZIP_TO_COUNTY = {"75001":"48113","75002":"48085","75006":"48113","75007":"48085","75009":"48085","75010":"48121","75013":"48085","75019":"48113","75020":"48181","75021":"48181","75022":"48121","75023":"48085","75024":"48085","75025":"48085","75028":"48121","75032":"48397","75033":"48085","75034":"48085","75035":"48085","75036":"48121","75038":"48113","75039":"48113","75040":"48113","75041":"48113","75042":"48113","75043":"48113","75044":"48085","75048":"48085","75050":"48113","75051":"48113","75052":"48113","75054":"48113","75056":"48121","75057":"48121","75058":"48181","75060":"48113","75061":"48113","75062":"48113","75063":"48113","75065":"48121","75067":"48113","75068":"48121","75069":"48085","75070":"48085","75071":"48085","75072":"48085","75074":"48085","75075":"48085","75076":"48181","75077":"48121","75078":"48085","75080":"48085","75081":"48113","75082":"48085","75087":"48085","75088":"48113","75089":"48113","75090":"48181","75092":"48181","75093":"48085","75094":"48085","75098":"48085","75101":"48139","75102":"48349","75104":"48113","75105":"48349","75109":"48349","75110":"48349","75114":"48257","75115":"48113","75116":"48113","75119":"48139","75124":"48213","75125":"48113","75126":"48257","75132":"48397","75134":"48113","75135":"48231","75137":"48113","75141":"48113","75142":"48257","75143":"48213","75144":"48349","75146":"48113","75147":"48213","75148":"48213","75149":"48113","75150":"48113","75152":"48139","75153":"48349","75154":"48113","75155":"48349","75156":"48213","75157":"48257","75158":"48257","75159":"48113","75160":"48231","75161":"48257","75163":"48213","75164":"48085","75165":"48139","75166":"48085","75167":"48139","75169":"48231","75172":"48113","75173":"48085","75180":"48113","75181":"48113","75182":"48113","75189":"48085","75201":"48113","75202":"48113","75203":"48113","75204":"48113","75205":"48113","75206":"48113","75207":"48113","75208":"48113","75209":"48113","75210":"48113","75211":"48113","75212":"48113","75214":"48113","75215":"48113","75216":"48113","75217":"48113","75218":"48113","75219":"48113","75220":"48113","75223":"48113","75224":"48113","75225":"48113","75226":"48113","75227":"48113","75228":"48113","75229":"48113","75230":"48113","75231":"48113","75232":"48113","75233":"48113","75234":"48113","75235":"48113","75236":"48113","75237":"48113","75238":"48113","75240":"48113","75241":"48113","75243":"48113","75244":"48113","75246":"48113","75247":"48113","75248":"48085","75249":"48113","75251":"48113","75252":"48085","75253":"48113","75254":"48113","75261":"48439","75270":"48113","75287":"48085","75390":"48113","75401":"48231","75402":"48231","75407":"48085","75409":"48085","75413":"48147","75414":"48181","75418":"48147","75422":"48231","75423":"48147","75424":"48085","75428":"48231","75429":"48231","75433":"48231","75438":"48147","75439":"48147","75442":"48085","75446":"48147","75447":"48147","75449":"48147","75452":"48085","75453":"48231","75454":"48085","75459":"48181","75469":"48147","75474":"48231","75475":"48147","75476":"48147","75479":"48147","75488":"48147","75489":"48181","75490":"48147","75491":"48085","75492":"48147","75495":"48085","75496":"48147","75751":"48213","75752":"48213","75756":"48213","75758":"48213","75763":"48213","75770":"48213","75778":"48213","75782":"48213","75803":"48213","75853":"48213","75859":"48349","76001":"48439","76002":"48439","76005":"48439","76006":"48439","76008":"48367","76009":"48251","76010":"48439","76011":"48439","76012":"48439","76013":"48439","76014":"48439","76015":"48439","76016":"48439","76017":"48439","76018":"48439","76020":"48367","76021":"48439","76022":"48439","76023":"48367","76028":"48251","76031":"48251","76033":"48221","76034":"48439","76035":"48221","76036":"48251","76039":"48439","76040":"48439","76041":"48139","76043":"48425","76044":"48251","76048":"48221","76049":"48221","76050":"48139","76051":"48113","76052":"48121","76053":"48439","76054":"48439","76058":"48251","76059":"48251","76060":"48439","76061":"48251","76063":"48139","76064":"48139","76065":"48113","76066":"48363","76067":"48363","76070":"48251","76071":"48439","76073":"48497","76077":"48425","76078":"48121","76082":"48367","76084":"48139","76085":"48367","76086":"48367","76087":"48221","76088":"48367","76092":"48121","76093":"48251","76102":"48439","76103":"48439","76104":"48439","76105":"48439","76106":"48439","76107":"48439","76108":"48367","76109":"48439","76110":"48439","76111":"48439","76112":"48439","76114":"48439","76115":"48439","76116":"48439","76117":"48439","76118":"48439","76119":"48439","76120":"48439","76123":"48439","76126":"48367","76127":"48439","76129":"48439","76131":"48439","76132":"48439","76133":"48439","76134":"48439","76135":"48439","76137":"48439","76140":"48439","76148":"48439","76155":"48439","76164":"48439","76177":"48121","76179":"48439","76180":"48439","76182":"48439","76201":"48121","76203":"48121","76205":"48121","76207":"48121","76208":"48121","76209":"48121","76210":"48121","76225":"48337","76226":"48121","76227":"48121","76228":"48077","76230":"48077","76233":"48097","76234":"48097","76238":"48097","76239":"48097","76240":"48097","76241":"48097","76244":"48439","76245":"48181","76247":"48121","76248":"48439","76249":"48121","76250":"48097","76251":"48337","76252":"48097","76253":"48097","76255":"48337","76258":"48097","76259":"48121","76261":"48077","76262":"48121","76263":"48097","76264":"48181","76265":"48097","76266":"48097","76267":"48497","76268":"48181","76270":"48337","76271":"48097","76272":"48097","76273":"48097","76301":"48485","76302":"48485","76305":"48077","76306":"48485","76308":"48485","76309":"48485","76310":"48077","76311":"48485","76354":"48485","76357":"48077","76360":"48485","76365":"48077","76367":"48485","76377":"48077","76389":"48077","76401":"48143","76402":"48143","76426":"48237","76427":"48237","76429":"48363","76431":"48237","76433":"48143","76436":"48143","76439":"48367","76444":"48143","76445":"48143","76446":"48143","76449":"48237","76450":"48363","76453":"48143","76457":"48143","76458":"48237","76459":"48237","76462":"48143","76463":"48143","76472":"48363","76475":"48363","76476":"48221","76484":"48363","76486":"48237","76487":"48237","76490":"48367","76623":"48139","76626":"48139","76639":"48349","76641":"48139","76648":"48349","76649":"48143","76651":"48139","76666":"48349","76670":"48139","76679":"48349","76681":"48349","76690":"48143","76693":"48349"};
+function addChurch(data) {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var churches = ss.getSheetByName('Churches');
+    if (!churches) return { success: false, error: 'Churches sheet not found. Run setupMultiTenant().' };
 
-var NT_RELIGIOUS_DATA = {
+    var existing = churches.getDataRange().getValues();
+    var nextId = 'CH' + String(existing.length).padStart(4, '0');
+
+    churches.appendRow([
+      nextId,
+      data.orgId || '',
+      data.churchName,
+      data.city || '',
+      data.state || '',
+      data.zip || '',
+      data.pastorName || '',
+      data.pastorEmail || '',
+      data.sectionLeaderRow || '',
+      'Active',
+      new Date()
+    ]);
+
+    logAudit(data.addedBy || 'SYSTEM', 'CHURCH_ADDED',
+      data.churchName + (data.orgId ? ' [' + data.orgId + ']' : ''));
+    return { success: true, churchId: nextId };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function addChurchesBulk(data) {
+  try {
+    var results = [];
+    var churches = data.churches || [];
+    for (var i = 0; i < churches.length; i++) {
+      churches[i].orgId = data.orgId;
+      churches[i].sectionLeaderRow = data.sectionLeaderRow;
+      churches[i].addedBy = data.addedBy;
+      results.push(addChurch(churches[i]));
+    }
+    var added = results.filter(function(r) { return r.success; }).length;
+    return { success: true, added: added, total: churches.length };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function getChurches(params) {
+  try {
+    var orgId = params.orgId || '';
+    var sectionLeaderRow = params.sectionLeaderRow || '';
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var churches = ss.getSheetByName('Churches');
+    if (!churches) return { success: true, churches: [] };
+
+    var data = churches.getDataRange().getValues();
+    var list = [];
+    for (var i = 1; i < data.length; i++) {
+      if (orgId && String(data[i][1]) !== orgId) continue;
+      if (sectionLeaderRow && String(data[i][8]) !== String(sectionLeaderRow)) continue;
+
+      list.push({
+        churchId: data[i][0],
+        orgId: data[i][1],
+        churchName: data[i][2],
+        city: data[i][3],
+        state: data[i][4],
+        zip: data[i][5],
+        pastorName: data[i][6],
+        pastorEmail: data[i][7],
+        sectionLeaderRow: data[i][8],
+        status: data[i][9],
+        dateAdded: data[i][10]
+      });
+    }
+    return { success: true, churches: list };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function updateChurchStatus(data) {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var churches = ss.getSheetByName('Churches');
+    var all = churches.getDataRange().getValues();
+    for (var i = 1; i < all.length; i++) {
+      if (all[i][0] === data.churchId) {
+        churches.getRange(i + 1, 10).setValue(data.status); // Active or Inactive
+        logAudit(data.updatedBy || 'SYSTEM', 'CHURCH_STATUS',
+          all[i][2] + ' → ' + data.status);
+        return { success: true };
+      }
+    }
+    return { success: false, error: 'Church not found' };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/** Fuzzy search churches by name for the assessment flow */
+function searchChurches(params) {
+  try {
+    var query = String(params.query || '').toLowerCase().trim();
+    var orgId = params.orgId || '';
+    if (query.length < 2) return { success: true, matches: [] };
+
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var churches = ss.getSheetByName('Churches');
+    if (!churches) return { success: true, matches: [] };
+
+    var data = churches.getDataRange().getValues();
+    var matches = [];
+    for (var i = 1; i < data.length; i++) {
+      if (orgId && String(data[i][1]) !== orgId) continue;
+      if (data[i][9] !== 'Active') continue;
+
+      var name = String(data[i][2]).toLowerCase();
+      // Simple fuzzy: check if query words appear in the church name
+      var queryWords = query.split(/\s+/);
+      var matchCount = 0;
+      for (var w = 0; w < queryWords.length; w++) {
+        if (name.indexOf(queryWords[w]) >= 0) matchCount++;
+      }
+      if (matchCount > 0) {
+        matches.push({
+          churchId: data[i][0],
+          churchName: data[i][2],
+          city: data[i][3],
+          state: data[i][4],
+          pastorName: data[i][6],
+          score: matchCount / queryWords.length // relevance
+        });
+      }
+    }
+
+    // Sort by relevance
+    matches.sort(function(a, b) { return b.score - a.score; });
+    return { success: true, matches: matches.slice(0, 10) };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+// ── DASHBOARD DATA ──
+
+/** Section leader dashboard: their churches with latest scores and trends */
+function getSectionDashboard(params) {
+  try {
+    var orgId = params.orgId;
+    var userRow = params.userRow;
+
+    // Get churches assigned to this section leader
+    var churchResult = getChurches({ orgId: orgId, sectionLeaderRow: userRow });
+    if (!churchResult.success) return churchResult;
+
+    // Get all assessments for this org
+    var assessResult = getAssessments({
+      userRole: 'SectionLeader',
+      orgId: orgId,
+      userRow: userRow
+    });
+    if (!assessResult.success) return assessResult;
+
+    // Build church health map
+    var churchHealth = [];
+    for (var c = 0; c < churchResult.churches.length; c++) {
+      var church = churchResult.churches[c];
+      // Find all assessments for this church, sorted by date
+      var churchAssessments = assessResult.assessments.filter(function(a) {
+        return a.churchName && a.churchName.toLowerCase() === church.churchName.toLowerCase();
+      }).sort(function(a, b) {
+        return new Date(b.timestamp) - new Date(a.timestamp);
+      });
+
+      var latest = churchAssessments.length > 0 ? churchAssessments[0] : null;
+      var previous = churchAssessments.length > 1 ? churchAssessments[1] : null;
+      var trend = 'none';
+      if (latest && previous) {
+        if (latest.score > previous.score) trend = 'improving';
+        else if (latest.score < previous.score) trend = 'declining';
+        else trend = 'stable';
+      }
+
+      churchHealth.push({
+        church: church,
+        assessmentCount: churchAssessments.length,
+        latest: latest ? {
+          score: latest.score,
+          rating: latest.rating,
+          date: latest.timestamp,
+          assessedBy: latest.assessedBy,
+          assessorRole: latest.assessorRole
+        } : null,
+        trend: trend,
+        history: churchAssessments.map(function(a) {
+          return { score: a.score, rating: a.rating, date: a.timestamp, assessedBy: a.assessedBy, assessorRole: a.assessorRole };
+        })
+      });
+    }
+
+    // Summary counts
+    var summary = { green: 0, yellow: 0, red: 0, unassessed: 0, total: churchHealth.length };
+    for (var h = 0; h < churchHealth.length; h++) {
+      if (!churchHealth[h].latest) summary.unassessed++;
+      else if (churchHealth[h].latest.rating === 'GREEN') summary.green++;
+      else if (churchHealth[h].latest.rating === 'YELLOW') summary.yellow++;
+      else summary.red++;
+    }
+
+    return { success: true, churches: churchHealth, summary: summary };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/** District admin dashboard: all sections, all churches, district-wide view */
+function getDistrictDashboard(params) {
+  try {
+    var orgId = params.orgId;
+
+    // Get all churches for this org
+    var churchResult = getChurches({ orgId: orgId });
+    if (!churchResult.success) return churchResult;
+
+    // Get all assessments for this org
+    var assessResult = getAssessments({ userRole: 'Admin', orgId: orgId });
+    if (!assessResult.success) return assessResult;
+
+    // Get section leader names from Users sheet
+    var sectionLeaders = {};
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var users = ss.getSheetByName('Users');
+    var userData = users.getDataRange().getValues();
+    var headers = userData[0];
+    var orgIdCol = headers.indexOf('OrgID');
+    for (var u = 1; u < userData.length; u++) {
+      var uOrgId = orgIdCol >= 0 ? String(userData[u][orgIdCol]) : '';
+      if (orgId && uOrgId !== orgId) continue;
+      if (userData[u][3] === 'SectionLeader' && userData[u][7] === 'Y') {
+        sectionLeaders[u + 1] = { name: userData[u][1], row: u + 1 };
+      }
+    }
+
+    // Build health summary per church
+    var churchMap = {};
+    for (var c = 0; c < churchResult.churches.length; c++) {
+      var ch = churchResult.churches[c];
+      churchMap[ch.churchName.toLowerCase()] = {
+        church: ch,
+        assessments: []
+      };
+    }
+
+    for (var a = 0; a < assessResult.assessments.length; a++) {
+      var assessment = assessResult.assessments[a];
+      var key = (assessment.churchName || '').toLowerCase();
+      if (churchMap[key]) {
+        churchMap[key].assessments.push(assessment);
+      }
+    }
+
+    var summary = { green: 0, yellow: 0, red: 0, unassessed: 0, total: 0, totalAssessments: assessResult.assessments.length };
+    var churches = [];
+    var keys = Object.keys(churchMap);
+    for (var k = 0; k < keys.length; k++) {
+      var entry = churchMap[keys[k]];
+      entry.assessments.sort(function(a, b) { return new Date(b.timestamp) - new Date(a.timestamp); });
+      var latest = entry.assessments.length > 0 ? entry.assessments[0] : null;
+
+      summary.total++;
+      if (!latest) summary.unassessed++;
+      else if (latest.rating === 'GREEN') summary.green++;
+      else if (latest.rating === 'YELLOW') summary.yellow++;
+      else summary.red++;
+
+      // Include section leader name
+      var slRow = entry.church.sectionLeaderRow;
+      var slName = (slRow && sectionLeaders[slRow]) ? sectionLeaders[slRow].name : '';
+
+      churches.push({
+        church: entry.church,
+        assessmentCount: entry.assessments.length,
+        latest: latest ? { score: latest.score, rating: latest.rating, date: latest.timestamp } : null,
+        sectionLeaderName: slName,
+        history: entry.assessments.map(function(a) {
+          return { score: a.score, rating: a.rating, date: a.timestamp, assessedBy: a.assessedBy, assessorRole: a.assessorRole };
+        })
+      });
+    }
+
+    // Build section leader groups
+    var sections = [];
+    var slKeys = Object.keys(sectionLeaders);
+    for (var s = 0; s < slKeys.length; s++) {
+      var sl = sectionLeaders[slKeys[s]];
+      var slChurches = churches.filter(function(c) { return String(c.church.sectionLeaderRow) === String(sl.row); });
+      var slSummary = { green: 0, yellow: 0, red: 0, unassessed: 0, total: slChurches.length };
+      slChurches.forEach(function(c) {
+        if (!c.latest) slSummary.unassessed++;
+        else if (c.latest.rating === 'GREEN') slSummary.green++;
+        else if (c.latest.rating === 'YELLOW') slSummary.yellow++;
+        else slSummary.red++;
+      });
+      sections.push({ name: sl.name, row: sl.row, churches: slChurches, summary: slSummary });
+    }
+
+    // Churches not assigned to any section leader
+    var unassigned = churches.filter(function(c) { return !c.sectionLeaderName; });
+
+    return { success: true, churches: churches, summary: summary, sections: sections, unassigned: unassigned };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+// ── ORG MANAGEMENT (Platform Owner only) ──
+
+function getOrganizations() {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var orgSheet = ss.getSheetByName('Organizations');
+    if (!orgSheet) return { success: true, organizations: [] };
+
+    var data = orgSheet.getDataRange().getValues();
+    var orgs = [];
+    for (var i = 1; i < data.length; i++) {
+      orgs.push({
+        row: i + 1,
+        orgId: data[i][0],
+        orgName: data[i][1],
+        state: data[i][2],
+        denominationCode: data[i][3],
+        denominationName: data[i][4],
+        adminName: data[i][5],
+        adminEmail: data[i][6],
+        status: data[i][8],
+        dateCreated: data[i][9]
+      });
+    }
+    return { success: true, organizations: orgs };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+function approveOrganization(data) {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var orgSheet = ss.getSheetByName('Organizations');
+    var all = orgSheet.getDataRange().getValues();
+
+    for (var i = 1; i < all.length; i++) {
+      if (String(all[i][0]) === String(data.orgId)) {
+        orgSheet.getRange(i + 1, 9).setValue('Active'); // Status column
+        logAudit('PLATFORM', 'ORG_APPROVED', all[i][1] + ' (' + data.orgId + ')');
+
+        // Create admin user for the org if PIN provided
+        if (data.adminPin) {
+          addUser({
+            pin: data.adminPin,
+            name: all[i][5],
+            email: all[i][6],
+            role: 'Admin',
+            church: '',
+            orgId: data.orgId
+          });
+        }
+        return { success: true };
+      }
+    }
+    return { success: false, error: 'Organization not found' };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+// ── ONBOARDING ──
+
+/** Get list of counties for a given state (for intake form county picker) */
+function getCountiesByState(stateName) {
+  try {
+    var refSS = SpreadsheetApp.openById(REFERENCE_SPREADSHEET_ID);
+    var rdSheet = refSS.getSheetByName('ReligiousData');
+    var data = rdSheet.getDataRange().getValues();
+    var counties = [];
+
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][1]).toLowerCase() === String(stateName).toLowerCase()) {
+        counties.push({
+          fips: String(data[i][0]),
+          county: String(data[i][2]).replace(' County', '').replace(' Parish', '')
+        });
+      }
+    }
+
+    counties.sort(function(a, b) { return a.county.localeCompare(b.county); });
+    return { success: true, counties: counties, state: stateName };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/** Get denomination list for the intake dropdown */
+function getDenominations() {
+  try {
+    var refSS = SpreadsheetApp.openById(REFERENCE_SPREADSHEET_ID);
+    var denomSheet = refSS.getSheetByName('DenominationLookup');
+    var data = denomSheet.getDataRange().getValues();
+    var list = [];
+    for (var i = 1; i < data.length; i++) {
+      list.push({ code: String(data[i][0]), name: data[i][1], shortName: data[i][2] });
+    }
+    return { success: true, denominations: list };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+/** Submit onboarding request — creates pending org, notifies Steve */
+function submitOnboardRequest(data) {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var orgSheet = ss.getSheetByName('Organizations');
+    if (!orgSheet) return { success: false, error: 'Organizations sheet not found.' };
+
+    // Generate org ID from name (first letters, uppercase, max 6 chars)
+    var orgId = String(data.orgName || '').replace(/[^a-zA-Z\s]/g, '').split(/\s+/)
+      .map(function(w) { return w.charAt(0).toUpperCase(); }).join('').substring(0, 6);
+    // Check for duplicate and append number if needed
+    var existing = orgSheet.getDataRange().getValues();
+    var baseId = orgId;
+    var counter = 1;
+    while (existing.some(function(row) { return String(row[0]) === orgId; })) {
+      orgId = baseId + counter;
+      counter++;
+    }
+
+    var counties = (data.counties || []).join(',');
+
+    orgSheet.appendRow([
+      orgId,
+      data.orgName,
+      data.state,
+      data.denomCode,
+      data.denomName,
+      data.adminName,
+      data.adminEmail,
+      data.adminEmail,
+      'Pending',
+      new Date(),
+      counties
+    ]);
+
+    logAudit('ONBOARD', 'ORG_REQUEST', data.orgName + ' (' + orgId + ') — ' + data.adminName + ' <' + data.adminEmail + '>');
+
+    // Notify Steve
+    try {
+      var ownerEmail = PropertiesService.getScriptProperties().getProperty('PLATFORM_OWNER_EMAIL') || 'steve@citybioclean.com';
+      MailApp.sendEmail({
+        to: ownerEmail,
+        subject: 'New District Onboard Request: ' + data.orgName,
+        htmlBody: '<div style="font-family:sans-serif;max-width:500px;">' +
+          '<h2 style="color:#1b2541;">New District Request</h2>' +
+          '<p><strong>District:</strong> ' + data.orgName + '</p>' +
+          '<p><strong>State:</strong> ' + data.state + '</p>' +
+          '<p><strong>Denomination:</strong> ' + data.denomName + '</p>' +
+          '<p><strong>Admin:</strong> ' + data.adminName + ' &lt;' + data.adminEmail + '&gt;</p>' +
+          '<p><strong>Counties:</strong> ' + (data.counties || []).length + ' selected</p>' +
+          '<p><strong>Org ID:</strong> ' + orgId + '</p>' +
+          '<p style="margin-top:20px;">Log in to the platform to approve this request.</p>' +
+          '</div>',
+        noReply: true
+      });
+    } catch(emailErr) {
+      logAudit('SYSTEM', 'ONBOARD_EMAIL_ERROR', emailErr.message);
+    }
+
+    return { success: true, orgId: orgId };
+  } catch(e) {
+    return { success: false, error: e.message };
+  }
+}
+
+// ── RELIGIOUS DATA (dynamic from Reference Spreadsheet) ──
+
+// Legacy hardcoded data kept as fallback — will be removed after multi-tenant is verified
+var NT_ZIP_TO_COUNTY_LEGACY = {"75001":"48113","75002":"48085","75006":"48113","75007":"48085","75009":"48085","75010":"48121","75013":"48085","75019":"48113","75020":"48181","75021":"48181","75022":"48121","75023":"48085","75024":"48085","75025":"48085","75028":"48121","75032":"48397","75033":"48085","75034":"48085","75035":"48085","75036":"48121","75038":"48113","75039":"48113","75040":"48113","75041":"48113","75042":"48113","75043":"48113","75044":"48085","75048":"48085","75050":"48113","75051":"48113","75052":"48113","75054":"48113","75056":"48121","75057":"48121","75058":"48181","75060":"48113","75061":"48113","75062":"48113","75063":"48113","75065":"48121","75067":"48113","75068":"48121","75069":"48085","75070":"48085","75071":"48085","75072":"48085","75074":"48085","75075":"48085","75076":"48181","75077":"48121","75078":"48085","75080":"48085","75081":"48113","75082":"48085","75087":"48085","75088":"48113","75089":"48113","75090":"48181","75092":"48181","75093":"48085","75094":"48085","75098":"48085","75101":"48139","75102":"48349","75104":"48113","75105":"48349","75109":"48349","75110":"48349","75114":"48257","75115":"48113","75116":"48113","75119":"48139","75124":"48213","75125":"48113","75126":"48257","75132":"48397","75134":"48113","75135":"48231","75137":"48113","75141":"48113","75142":"48257","75143":"48213","75144":"48349","75146":"48113","75147":"48213","75148":"48213","75149":"48113","75150":"48113","75152":"48139","75153":"48349","75154":"48113","75155":"48349","75156":"48213","75157":"48257","75158":"48257","75159":"48113","75160":"48231","75161":"48257","75163":"48213","75164":"48085","75165":"48139","75166":"48085","75167":"48139","75169":"48231","75172":"48113","75173":"48085","75180":"48113","75181":"48113","75182":"48113","75189":"48085","75201":"48113","75202":"48113","75203":"48113","75204":"48113","75205":"48113","75206":"48113","75207":"48113","75208":"48113","75209":"48113","75210":"48113","75211":"48113","75212":"48113","75214":"48113","75215":"48113","75216":"48113","75217":"48113","75218":"48113","75219":"48113","75220":"48113","75223":"48113","75224":"48113","75225":"48113","75226":"48113","75227":"48113","75228":"48113","75229":"48113","75230":"48113","75231":"48113","75232":"48113","75233":"48113","75234":"48113","75235":"48113","75236":"48113","75237":"48113","75238":"48113","75240":"48113","75241":"48113","75243":"48113","75244":"48113","75246":"48113","75247":"48113","75248":"48085","75249":"48113","75251":"48113","75252":"48085","75253":"48113","75254":"48113","75261":"48439","75270":"48113","75287":"48085","75390":"48113","75401":"48231","75402":"48231","75407":"48085","75409":"48085","75413":"48147","75414":"48181","75418":"48147","75422":"48231","75423":"48147","75424":"48085","75428":"48231","75429":"48231","75433":"48231","75438":"48147","75439":"48147","75442":"48085","75446":"48147","75447":"48147","75449":"48147","75452":"48085","75453":"48231","75454":"48085","75459":"48181","75469":"48147","75474":"48231","75475":"48147","75476":"48147","75479":"48147","75488":"48147","75489":"48181","75490":"48147","75491":"48085","75492":"48147","75495":"48085","75496":"48147","75751":"48213","75752":"48213","75756":"48213","75758":"48213","75763":"48213","75770":"48213","75778":"48213","75782":"48213","75803":"48213","75853":"48213","75859":"48349","76001":"48439","76002":"48439","76005":"48439","76006":"48439","76008":"48367","76009":"48251","76010":"48439","76011":"48439","76012":"48439","76013":"48439","76014":"48439","76015":"48439","76016":"48439","76017":"48439","76018":"48439","76020":"48367","76021":"48439","76022":"48439","76023":"48367","76028":"48251","76031":"48251","76033":"48221","76034":"48439","76035":"48221","76036":"48251","76039":"48439","76040":"48439","76041":"48139","76043":"48425","76044":"48251","76048":"48221","76049":"48221","76050":"48139","76051":"48113","76052":"48121","76053":"48439","76054":"48439","76058":"48251","76059":"48251","76060":"48439","76061":"48251","76063":"48139","76064":"48139","76065":"48113","76066":"48363","76067":"48363","76070":"48251","76071":"48439","76073":"48497","76077":"48425","76078":"48121","76082":"48367","76084":"48139","76085":"48367","76086":"48367","76087":"48221","76088":"48367","76092":"48121","76093":"48251","76102":"48439","76103":"48439","76104":"48439","76105":"48439","76106":"48439","76107":"48439","76108":"48367","76109":"48439","76110":"48439","76111":"48439","76112":"48439","76114":"48439","76115":"48439","76116":"48439","76117":"48439","76118":"48439","76119":"48439","76120":"48439","76123":"48439","76126":"48367","76127":"48439","76129":"48439","76131":"48439","76132":"48439","76133":"48439","76134":"48439","76135":"48439","76137":"48439","76140":"48439","76148":"48439","76155":"48439","76164":"48439","76177":"48121","76179":"48439","76180":"48439","76182":"48439","76201":"48121","76203":"48121","76205":"48121","76207":"48121","76208":"48121","76209":"48121","76210":"48121","76225":"48337","76226":"48121","76227":"48121","76228":"48077","76230":"48077","76233":"48097","76234":"48097","76238":"48097","76239":"48097","76240":"48097","76241":"48097","76244":"48439","76245":"48181","76247":"48121","76248":"48439","76249":"48121","76250":"48097","76251":"48337","76252":"48097","76253":"48097","76255":"48337","76258":"48097","76259":"48121","76261":"48077","76262":"48121","76263":"48097","76264":"48181","76265":"48097","76266":"48097","76267":"48497","76268":"48181","76270":"48337","76271":"48097","76272":"48097","76273":"48097","76301":"48485","76302":"48485","76305":"48077","76306":"48485","76308":"48485","76309":"48485","76310":"48077","76311":"48485","76354":"48485","76357":"48077","76360":"48485","76365":"48077","76367":"48485","76377":"48077","76389":"48077","76401":"48143","76402":"48143","76426":"48237","76427":"48237","76429":"48363","76431":"48237","76433":"48143","76436":"48143","76439":"48367","76444":"48143","76445":"48143","76446":"48143","76449":"48237","76450":"48363","76453":"48143","76457":"48143","76458":"48237","76459":"48237","76462":"48143","76463":"48143","76472":"48363","76475":"48363","76476":"48221","76484":"48363","76486":"48237","76487":"48237","76490":"48367","76623":"48139","76626":"48139","76639":"48349","76641":"48139","76648":"48349","76649":"48143","76651":"48139","76666":"48349","76670":"48139","76679":"48349","76681":"48349","76690":"48143","76693":"48349"};
+
+var NT_RELIGIOUS_DATA_LEGACY = {
   "48113": {county:"Dallas",pop:2604053,totalAdherents:1541280,agCongs:114,agAdherents:56159,evangelical:573341,pentecostal:89478,catholic:431645,mainline:214466,blackProt:152732,top3:"Catholic Church (431,645); Non-denominational (228,162); Southern Baptist (210,795)"},
   "48439": {county:"Tarrant",pop:2113854,totalAdherents:1280384,agCongs:58,agAdherents:17420,evangelical:644592,pentecostal:38812,catholic:359705,mainline:115271,blackProt:66974,top3:"Catholic Church (359,705); Southern Baptist (278,899); Non-denominational (262,336)"},
   "48085": {county:"Collin",pop:1079153,totalAdherents:502689,agCongs:27,agAdherents:4432,evangelical:198484,pentecostal:5408,catholic:140562,mainline:60497,blackProt:6880,top3:"Catholic Church (140,562); Southern Baptist (87,523); Non-denominational (87,248)"},
@@ -817,39 +1508,160 @@ var NT_RELIGIOUS_DATA = {
   "48213": {county:"Henderson",pop:82627,totalAdherents:39838,agCongs:13,agAdherents:1116,evangelical:26596,pentecostal:1704,catholic:6659,mainline:3834,blackProt:1802,top3:"Southern Baptist (16,039); Catholic Church (6,659); Non-denominational (6,530)"}
 };
 
-function lookupReligiousData(zip) {
+/**
+ * Dynamic religious data lookup — reads from Reference Spreadsheet.
+ * Works for any ZIP in the US, any denomination.
+ * @param {string} zip - 5-digit ZIP code
+ * @param {string} orgId - (optional) organization ID for denomination-specific highlight
+ */
+function lookupReligiousData(zip, orgId) {
   try {
     zip = String(zip).trim().replace(/\D/g, '');
-    var countyFips = NT_ZIP_TO_COUNTY[zip];
-    if (!countyFips) return { success: false, error: 'ZIP not in North Texas coverage area' };
+    if (zip.length !== 5) return { success: false, error: 'Invalid ZIP code' };
 
-    var data = NT_RELIGIOUS_DATA[countyFips];
-    if (!data) return { success: false, error: 'No religious data for this county' };
+    var refSS = SpreadsheetApp.openById(REFERENCE_SPREADSHEET_ID);
 
-    var unchurchedPct = data.pop > 0 ? Math.round((1 - data.totalAdherents / data.pop) * 100) : 0;
+    // Step 1: ZIP → County FIPS
+    var zcSheet = refSS.getSheetByName('ZipToCounty');
+    var zcData = zcSheet.getDataRange().getValues();
+    var countyFips = '';
+    for (var i = 1; i < zcData.length; i++) {
+      if (String(zcData[i][0]) === zip) {
+        countyFips = String(zcData[i][1]);
+        break;
+      }
+    }
+    if (!countyFips) return { success: false, error: 'ZIP code not found in coverage area' };
+
+    // Step 2: Get county religious data
+    var rdSheet = refSS.getSheetByName('ReligiousData');
+    var rdData = rdSheet.getDataRange().getValues();
+    var headers = rdData[0];
+    var countyRow = null;
+    for (var i = 1; i < rdData.length; i++) {
+      if (String(rdData[i][0]) === countyFips) {
+        countyRow = rdData[i];
+        break;
+      }
+    }
+    if (!countyRow) return { success: false, error: 'No religious data for county ' + countyFips };
+
+    var pop = Number(countyRow[3]) || 0;
+    var totalAdherents = Number(countyRow[4]) || 0;
+    var unchurchedPct = pop > 0 ? Math.round((1 - totalAdherents / pop) * 100) : 0;
     if (unchurchedPct < 0) unchurchedPct = 0;
+
+    // Step 3: Get org's denomination for highlight card
+    var denomCode = '053'; // Default to AG
+    var denomName = 'Assemblies of God';
+    if (orgId) {
+      var org = getOrgById_(orgId);
+      if (org) {
+        denomCode = org.denominationCode || '053';
+        denomName = org.denominationName || 'Assemblies of God';
+      }
+    }
+
+    // Find the org's denomination columns in the data
+    var denomCongs = 0, denomAdherents = 0;
+    var denomShort = getDenomShortName_(denomName);
+    for (var j = 6; j < headers.length - 1; j += 2) {
+      if (String(headers[j]).indexOf(denomShort) >= 0 && String(headers[j]).indexOf('Congs') >= 0) {
+        denomCongs = Number(countyRow[j]) || 0;
+        denomAdherents = Number(countyRow[j + 1]) || 0;
+        break;
+      }
+    }
+
+    // Get top3 (last column)
+    var top3 = countyRow[headers.length - 1] || '';
+
+    // Get evangelical total (scan for it)
+    var evangelical = 0;
+    for (var j = 0; j < headers.length; j++) {
+      if (String(headers[j]) === 'Evangelical Lutheran (ELCA) Adherents') {
+        evangelical = Number(countyRow[j]) || 0;
+      }
+    }
 
     return {
       success: true,
-      county: data.county,
+      county: String(countyRow[2]).replace(' County', ''),
       countyFips: countyFips,
-      countyPop: data.pop,
-      totalAdherents: data.totalAdherents,
+      countyPop: pop,
+      totalAdherents: totalAdherents,
       unchurchedPct: unchurchedPct,
-      unchurchedCount: Math.max(0, data.pop - data.totalAdherents),
-      agCongregations: data.agCongs,
-      agAdherents: data.agAdherents,
-      evangelical: data.evangelical,
-      pentecostal: data.pentecostal,
-      catholic: data.catholic,
-      mainline: data.mainline,
-      blackProtestant: data.blackProt,
-      top3: data.top3,
+      unchurchedCount: Math.max(0, pop - totalAdherents),
+      denomName: denomName,
+      denomCongregations: denomCongs,
+      denomAdherents: denomAdherents,
+      // Legacy field names for backward compatibility with existing frontend
+      agCongregations: denomCongs,
+      agAdherents: denomAdherents,
+      evangelical: evangelical,
+      pentecostal: 0,
+      catholic: 0,
+      mainline: 0,
+      blackProtestant: 0,
+      top3: top3,
       source: 'ARDA 2020 US Religion Census'
     };
   } catch(e) {
-    return { success: false, error: 'Religious data lookup failed' };
+    return { success: false, error: 'Religious data lookup failed: ' + e.message };
   }
+}
+
+/** Get org details by OrgID */
+function getOrgById_(orgId) {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var orgSheet = ss.getSheetByName('Organizations');
+    if (!orgSheet) return null;
+    var data = orgSheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === String(orgId)) {
+        return {
+          orgId: data[i][0],
+          orgName: data[i][1],
+          state: data[i][2],
+          denominationCode: String(data[i][3]),
+          denominationName: data[i][4],
+          adminName: data[i][5],
+          adminEmail: data[i][6],
+          adminNotifyEmail: data[i][7],
+          status: data[i][8]
+        };
+      }
+    }
+    return null;
+  } catch(e) {
+    return null;
+  }
+}
+
+/** Map full denomination name to the short name used in ReligiousData column headers */
+function getDenomShortName_(denomName) {
+  var map = {
+    'Assemblies of God': 'Assemblies of God',
+    'Southern Baptist Convention': 'Southern Baptist Convention',
+    'Catholic Church': 'Catholic Church',
+    'United Methodist Church': 'United Methodist Church',
+    'Non-denominational Christian Churches': 'Non-denominational',
+    'Church of God (Cleveland, Tennessee)': 'Church of God (Cleveland TN)',
+    'Church of God (Anderson, Indiana)': 'Church of God (Anderson IN)',
+    'Church of God in Christ': 'Church of God in Christ',
+    'Church of the Nazarene': 'Church of the Nazarene',
+    'Churches of Christ': 'Churches of Christ',
+    'Christian Churches and Churches of Christ': 'Christian Churches',
+    'Evangelical Lutheran Church in America': 'Evangelical Lutheran (ELCA)',
+    'Lutheran Church--Missouri Synod': 'Lutheran Church Missouri Synod',
+    'Episcopal Church': 'Episcopal Church',
+    'Presbyterian Church (U.S.A.)': 'Presbyterian Church USA',
+    'American Baptist Churches in the USA': 'American Baptist',
+    'Seventh-day Adventist Church': 'Seventh-day Adventist',
+    'Church of Jesus Christ of Latter-day Saints': 'Latter-day Saints'
+  };
+  return map[denomName] || denomName;
 }
 
 // ── AUDIT LOG ──

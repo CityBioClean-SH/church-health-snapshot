@@ -639,6 +639,138 @@
   .admin-msg.success { display: block; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
   .admin-msg.error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 
+  /* ── Church Name Suggest ── */
+  .church-suggest {
+    position: absolute; top: 100%; left: 0; right: 0; z-index: 10;
+    background: white; border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 6px 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-height: 200px; overflow-y: auto;
+  }
+  .church-suggest-item {
+    padding: 10px 14px; cursor: pointer; font-size: 14px; color: var(--text);
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .church-suggest-item:hover { background: var(--cream); }
+  .church-suggest-item:last-child { border-bottom: none; }
+  .church-suggest-city { font-size: 12px; color: var(--text-faint); }
+
+  /* ── Church List ── */
+  .church-list-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 6px; background: white;
+  }
+  .church-list-name { font-weight: 600; color: var(--navy); font-size: 14px; }
+  .church-list-detail { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
+  .church-list-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .church-status-btn {
+    padding: 5px 12px; border-radius: 4px; font-size: 11px; border: 1px solid var(--border);
+    cursor: pointer; background: white; color: var(--text-soft);
+  }
+  .church-status-btn:hover { background: #f3f4f6; }
+  .church-status-btn.inactive { color: #991b1b; border-color: #fecaca; }
+  .church-active-badge { font-size: 11px; color: #1a6b3c; font-weight: 600; }
+  .church-inactive-badge { font-size: 11px; color: #991b1b; font-weight: 600; }
+  .btn-ghost-sm { font-size: 12px; color: var(--text-faint); cursor: pointer; background: none; border: none; text-decoration: underline; }
+
+  /* ── Pending Org Cards ── */
+  .pending-org-card {
+    background: white; border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; margin-bottom: 8px;
+  }
+  .pending-org-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .pending-org-name { font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 600; color: var(--navy); }
+  .pending-org-detail { font-size: 12px; color: var(--text-faint); margin-top: 4px; line-height: 1.6; }
+  .pending-org-approve {
+    padding: 8px 18px; background: #1a6b3c; color: white; border: none; border-radius: 6px;
+    font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .pending-org-approve:hover { background: #15803d; }
+  .pending-org-approve:disabled { opacity: 0.5; cursor: not-allowed; }
+  .pending-org-status { font-size: 12px; color: #1a6b3c; font-weight: 600; }
+
+  /* ── Dashboard ── */
+  .dash-summary {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .dash-stat {
+    flex: 1; min-width: 100px; text-align: center; padding: 16px 12px;
+    border-radius: 8px; background: var(--cream);
+  }
+  .dash-num { display: block; font-size: 28px; font-weight: 700; font-family: 'Cormorant Garamond', serif; }
+  .dash-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-faint); }
+  .dash-green .dash-num { color: #1a6b3c; }
+  .dash-yellow .dash-num { color: #a16207; }
+  .dash-red .dash-num { color: #991b1b; }
+  .dash-gray .dash-num { color: #9ca3af; }
+  .dash-total .dash-num { color: var(--navy); }
+
+  .dash-church-card {
+    background: white; border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px; margin-bottom: 10px; cursor: pointer;
+    transition: box-shadow 0.15s;
+  }
+  .dash-church-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .dash-church-top {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .dash-church-name {
+    font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600; color: var(--navy);
+  }
+  .dash-church-city { font-size: 12px; color: var(--text-faint); margin-top: 2px; }
+  .dash-church-score {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dash-score-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px; border-radius: 50%; font-weight: 700;
+    font-size: 16px; color: white;
+  }
+  .dash-score-badge.green { background: #1a6b3c; }
+  .dash-score-badge.yellow { background: #a16207; }
+  .dash-score-badge.red { background: #991b1b; }
+  .dash-score-badge.none { background: #d1d5db; color: #6b7280; font-size: 11px; }
+  .dash-trend { font-size: 18px; }
+  .dash-trend.improving { color: #1a6b3c; }
+  .dash-trend.declining { color: #991b1b; }
+  .dash-trend.stable { color: #a16207; }
+  .dash-church-meta { font-size: 12px; color: var(--text-faint); margin-top: 4px; }
+
+  .dash-history {
+    display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+  }
+  .dash-history.open { display: block; }
+  .dash-history-row {
+    display: flex; align-items: center; gap: 12px; padding: 6px 0;
+    font-size: 13px; color: var(--text-soft);
+  }
+  .dash-history-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .dash-history-dot.green { background: #1a6b3c; }
+  .dash-history-dot.yellow { background: #a16207; }
+  .dash-history-dot.red { background: #991b1b; }
+  .dash-section-group {
+    border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px;
+    overflow: hidden; background: white;
+  }
+  .dash-section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px; cursor: pointer; background: var(--cream);
+    transition: background 0.15s;
+  }
+  .dash-section-header:hover { background: #f5f0e8; }
+  .dash-section-name {
+    font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: var(--navy);
+  }
+  .dash-section-counts { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .dash-section-arrow { font-size: 12px; color: var(--text-faint); margin-left: 4px; }
+  .dash-section-body { padding: 12px 14px; }
+
+  .dash-no-data {
+    text-align: center; padding: 40px 20px; color: var(--text-faint); font-size: 14px;
+  }
+
   /* ── Welcome Walkthrough ── */
   .walkthrough-overlay {
     display: none;
@@ -2252,6 +2384,8 @@
           <span class="user-name" id="userName">Steve Harper</span>
         </div>
         <span class="role-tag" id="userRole">Admin</span>
+        <button class="admin-btn" id="dashboardBtn" onclick="toggleDashboard()" style="display:none;">Dashboard</button>
+        <button class="admin-btn" id="churchBtn" onclick="toggleChurchPanel()" style="display:none;">Churches</button>
         <button class="admin-btn" id="adminBtn" onclick="toggleAdminPanel()" style="display:none;">Manage Users</button>
         <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
       </div>
@@ -2274,9 +2408,10 @@
       </div>
       <div class="step-card-body">
         <div class="step-form-grid">
-          <div class="step-field">
+          <div class="step-field" style="position:relative;">
             <label>Church Name</label>
-            <input type="text" id="churchName" placeholder="" autocomplete="off">
+            <input type="text" id="churchName" placeholder="" autocomplete="off" oninput="searchChurchName(this.value)">
+            <div class="church-suggest" id="churchSuggest" style="display:none;"></div>
           </div>
           <div class="step-field">
             <label>Pastor / Leader Name</label>
@@ -2288,7 +2423,7 @@
           </div>
           <div class="step-field">
             <label>State</label>
-            <select id="churchState"><option value="TX" selected>Texas</option></select>
+            <input type="text" id="churchState" placeholder="" autocomplete="off">
           </div>
           <div class="step-field">
             <label>ZIP Code</label>
@@ -2597,7 +2732,7 @@
 
   <div class="app-footer" id="formFooter">
     <p class="org">North Texas District of the Assemblies of God</p>
-    <p style="margin-top:4px;">Target 1000 Department &middot; &copy; 2016</p>
+    <p style="margin-top:4px;">Church Health Snapshot &middot; &copy; 2026</p>
   </div>
 
   </div><!-- /step2 -->
@@ -2736,7 +2871,7 @@
 
     <div class="app-footer">
       <p class="org">North Texas District of the Assemblies of God</p>
-      <p style="margin-top:4px;">Target 1000 Department &middot; &copy; 2016</p>
+      <p style="margin-top:4px;">Church Health Snapshot &middot; &copy; 2026</p>
     </div>
   </div>
 
@@ -2748,6 +2883,14 @@
       <button class="admin-close" onclick="toggleAdminPanel()">&times;</button>
     </div>
     <div class="admin-body">
+
+      <!-- Pending Org Requests (PlatformOwner/Admin only) -->
+      <div id="pendingOrgsSection" style="display:none;">
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--navy);margin:0 0 12px;">Pending District Requests</h3>
+        <div id="pendingOrgsList" style="margin-bottom:16px;"></div>
+        <hr class="admin-divider">
+      </div>
+
       <h3 style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--navy);margin:0 0 16px;">Add New User</h3>
       <div class="admin-form-row">
         <div class="admin-form-group">
@@ -2768,7 +2911,7 @@
           <label>Role</label>
           <select id="newUserRole">
             <option value="Pastor">Pastor</option>
-            <option value="District">District Leader</option>
+            <option value="SectionLeader">Section Leader</option>
             <option value="Admin">Admin</option>
           </select>
         </div>
@@ -2790,12 +2933,109 @@
   </div>
 </div>
 
+<!-- ═══ Church Management Overlay ═══ -->
+<div class="admin-overlay" id="churchOverlay">
+  <div class="admin-panel" style="max-width:720px;">
+    <div class="admin-panel-header">
+      <h2>Manage Churches</h2>
+      <button class="admin-close" onclick="toggleChurchPanel()">&times;</button>
+    </div>
+    <div class="admin-body">
+
+      <!-- Add Church Form -->
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--navy);margin:0 0 12px;">Add Church</h3>
+      <div class="admin-form-row">
+        <div class="admin-form-group" style="flex:2;">
+          <label>Church Name</label>
+          <input type="text" id="newChurchName" placeholder="First Assembly of God">
+        </div>
+        <div class="admin-form-group" style="flex:1;">
+          <label>City</label>
+          <input type="text" id="newChurchCity" placeholder="">
+        </div>
+      </div>
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label>State</label>
+          <input type="text" id="newChurchState" placeholder="">
+        </div>
+        <div class="admin-form-group">
+          <label>ZIP</label>
+          <input type="text" id="newChurchZip" placeholder="" maxlength="5">
+        </div>
+      </div>
+      <div class="admin-form-row">
+        <div class="admin-form-group">
+          <label>Pastor Name</label>
+          <input type="text" id="newChurchPastor" placeholder="">
+        </div>
+        <div class="admin-form-group">
+          <label>Pastor Email</label>
+          <input type="email" id="newChurchPastorEmail" placeholder="">
+        </div>
+      </div>
+      <button class="admin-submit" id="addChurchBtn" onclick="handleAddChurch()">Add Church</button>
+      <div class="admin-msg" id="churchMsg"></div>
+
+      <!-- Bulk Upload -->
+      <div style="margin-top:16px;">
+        <button class="btn-ghost-sm" id="bulkToggle" onclick="toggleBulkUpload()" style="font-size:12px;color:var(--text-faint);cursor:pointer;background:none;border:none;text-decoration:underline;">Have a spreadsheet? Bulk upload</button>
+        <div id="bulkSection" style="display:none;margin-top:12px;">
+          <p style="font-size:12px;color:var(--text-soft);margin-bottom:8px;line-height:1.5;">Paste CSV data: one church per line.<br>Format: <strong>Church Name, City, State, ZIP, Pastor Name, Pastor Email</strong></p>
+          <textarea id="bulkData" rows="5" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:monospace;resize:vertical;" placeholder="First AG, Springfield, FL, 32301, John Smith, john@firstag.org
+Grace Church, Tallahassee, FL, 32303, Jane Doe, jane@grace.org"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="admin-submit" onclick="handleBulkUpload()" style="flex:1;">Upload Churches</button>
+          </div>
+          <div class="admin-msg" id="bulkMsg"></div>
+        </div>
+      </div>
+
+      <hr class="admin-divider">
+
+      <!-- Church List -->
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--navy);margin:0 0 12px;">Current Churches</h3>
+      <div id="churchList" style="margin-bottom:8px;">
+        <p style="color:var(--text-faint);font-size:13px;">Loading...</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Dashboard Overlay ═══ -->
+<div class="admin-overlay" id="dashboardOverlay">
+  <div class="admin-panel" style="max-width:900px;">
+    <div class="admin-panel-header">
+      <h2 id="dashTitle">District Health Dashboard</h2>
+      <button class="admin-close" onclick="toggleDashboard()">&times;</button>
+    </div>
+    <div class="admin-body" id="dashBody">
+
+      <!-- Summary Bar -->
+      <div class="dash-summary" id="dashSummary">
+        <div class="dash-stat dash-green"><span class="dash-num" id="dashGreen">0</span><span class="dash-label">Healthy</span></div>
+        <div class="dash-stat dash-yellow"><span class="dash-num" id="dashYellow">0</span><span class="dash-label">Caution</span></div>
+        <div class="dash-stat dash-red"><span class="dash-num" id="dashRed">0</span><span class="dash-label">Critical</span></div>
+        <div class="dash-stat dash-gray"><span class="dash-num" id="dashUnassessed">0</span><span class="dash-label">Not Assessed</span></div>
+        <div class="dash-stat dash-total"><span class="dash-num" id="dashTotal">0</span><span class="dash-label">Total</span></div>
+      </div>
+
+      <!-- Church List -->
+      <div id="dashChurchList" style="margin-top:20px;">
+        <p style="color:var(--text-faint);font-size:13px;">Loading...</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- ═══ First-Time Welcome Walkthrough ═══ -->
 <div class="walkthrough-overlay" id="walkthroughOverlay">
   <div class="walkthrough-card">
     <div class="walkthrough-header">
       <h2>Welcome to Church Health Snapshot</h2>
-      <p>North Texas Assemblies of God</p>
+      <p class="org">Church Health Snapshot</p>
     </div>
     <div class="walkthrough-body">
       <p style="font-size:14px;color:var(--text-soft);margin:0 0 20px;line-height:1.6;">This tool helps assess the overall health of your church across key areas. Here's how it works:</p>
@@ -2857,7 +3097,7 @@ function handlePinLogin() {
       document.querySelector('.login-btn').textContent = 'Sign In';
       document.querySelector('.login-btn').disabled = false;
       if (result.success) {
-        loginAs({ name: result.name, initials: result.name.split(' ').map(w=>w[0]).join('').substring(0,2), role: result.role, church: result.church, firstLogin: result.firstLogin });
+        loginAs({ name: result.name, initials: result.name.split(' ').map(w=>w[0]).join('').substring(0,2), role: result.role, church: result.church, firstLogin: result.firstLogin, orgId: result.orgId || '', orgName: result.orgName || '', denomName: result.denomName || 'Assemblies of God', userRow: result.userRow || 0 });
       } else {
         document.getElementById('pinError').style.display = 'block';
         document.querySelectorAll('.pin-input input').forEach(i => { i.value = ''; });
@@ -2884,7 +3124,7 @@ function handleEmailLogin() {
   google.script.run
     .withSuccessHandler(result => {
       if (result.success) {
-        loginAs({ name: result.name, initials: result.name.split(' ').map(w=>w[0]).join('').substring(0,2), role: result.role, church: result.church, firstLogin: result.firstLogin });
+        loginAs({ name: result.name, initials: result.name.split(' ').map(w=>w[0]).join('').substring(0,2), role: result.role, church: result.church, firstLogin: result.firstLogin, orgId: result.orgId || '', orgName: result.orgName || '', denomName: result.denomName || 'Assemblies of God', userRow: result.userRow || 0 });
       } else {
         document.getElementById('emailError').style.display = 'block';
       }
@@ -2906,17 +3146,25 @@ function loginAs(user) {
   document.getElementById('assessDate').value = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   if (user.church) document.getElementById('churchName').value = user.church;
 
-  // Show admin button for Admin role
-  document.getElementById('adminBtn').style.display = (user.role === 'Admin') ? 'inline-block' : 'none';
+  // Show admin button for Admin or PlatformOwner
+  document.getElementById('adminBtn').style.display = (user.role === 'Admin' || user.role === 'PlatformOwner') ? 'inline-block' : 'none';
+
+  // Show dashboard button for SectionLeader, Admin, PlatformOwner
+  document.getElementById('dashboardBtn').style.display = (['SectionLeader','Admin','PlatformOwner'].indexOf(user.role) >= 0) ? 'inline-block' : 'none';
+
+  // Show churches button for SectionLeader, Admin, PlatformOwner
+  document.getElementById('churchBtn').style.display = (['SectionLeader','Admin','PlatformOwner'].indexOf(user.role) >= 0) ? 'inline-block' : 'none';
+
+  // Update org branding in footers
+  var orgLabel = user.orgName || 'Church Health Snapshot';
+  document.querySelectorAll('.org').forEach(function(el) { el.textContent = orgLabel; });
 
   // Show walkthrough for first-time users
   if (user.firstLogin) {
     document.getElementById('walkthroughOverlay').classList.add('active');
   }
 
-  // Start at step 1
   goToStep(1);
-
   restoreSave();
 }
 
@@ -2924,7 +3172,11 @@ function handleLogout() {
   currentUser = null;
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('adminOverlay').classList.remove('active');
+  document.getElementById('dashboardOverlay').classList.remove('active');
+  document.getElementById('churchOverlay').classList.remove('active');
   document.getElementById('adminBtn').style.display = 'none';
+  document.getElementById('dashboardBtn').style.display = 'none';
+  document.getElementById('churchBtn').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.querySelectorAll('.pin-input input').forEach(i => { i.value = ''; });
   document.getElementById('pin1').focus();
@@ -2938,6 +3190,7 @@ function toggleAdminPanel() {
   } else {
     overlay.classList.add('active');
     loadUserList();
+    loadPendingOrgs();
   }
 }
 
@@ -2977,7 +3230,7 @@ function loadUserList() {
             '<div class="admin-edit-row">' +
               '<select id="edit-role-' + u.row + '">' +
                 '<option value="Pastor"' + (u.role === 'Pastor' ? ' selected' : '') + '>Pastor</option>' +
-                '<option value="District"' + (u.role === 'District' ? ' selected' : '') + '>District Leader</option>' +
+                '<option value="SectionLeader"' + (u.role === 'SectionLeader' ? ' selected' : '') + '>Section Leader</option>' +
                 '<option value="Admin"' + (u.role === 'Admin' ? ' selected' : '') + '>Admin</option>' +
               '</select>' +
               '<div></div>' +
@@ -2995,7 +3248,7 @@ function loadUserList() {
     .withFailureHandler(function() {
       list.innerHTML = '<li class="admin-user-item" style="color:var(--text-faint);font-size:13px;">Failed to load users</li>';
     })
-    .getUsers();
+    .getUsers({ orgId: currentUser ? (currentUser.orgId || '') : '', userRole: currentUser ? (currentUser.role || '') : '' });
 }
 
 function handleEditUser(row, pin, name, email, role, church) {
@@ -3119,7 +3372,7 @@ function handleAddUser() {
       msgEl.className = 'admin-msg error';
       msgEl.textContent = 'Connection error. Please try again.';
     })
-    .addUser({ pin: pin, name: name, email: email, role: role, church: church });
+    .addUser({ pin: pin, name: name, email: email, role: role, church: church, orgId: currentUser ? (currentUser.orgId || '') : '' });
 }
 
 // ── WELCOME WALKTHROUGH ──
@@ -3188,7 +3441,7 @@ function handleStep1Submit() {
         errorDiv.textContent = 'Connection error. Try entering a ZIP code instead.';
         errorDiv.style.display = 'block';
       })
-      .lookupZipFromCity(city);
+      .lookupZipFromCity(city, document.getElementById('churchState').value || '');
     return;
   }
 
@@ -3243,7 +3496,8 @@ function runCensusLookup(zip, btn) {
         calculate();
 
         // Show success message with city name if available
-        var displayName = result.cityName ? result.cityName + ', TX' : result.placeName;
+        var stateName = result.stateName || document.getElementById('churchState').value || '';
+        var displayName = result.cityName ? result.cityName + (stateName ? ', ' + stateName : '') : result.placeName;
         var cityLine = '';
         if (result.cityName && result.cityPop > 0) {
           cityLine = ' · <strong>' + result.cityName + '</strong> city pop: ' + result.cityPop.toLocaleString();
@@ -3260,34 +3514,41 @@ function runCensusLookup(zip, btn) {
         // Update the note
         document.getElementById('demoNote').textContent = 'Census data auto-filled for ZIP ' + zip + '. You can still adjust values manually.';
 
-        // Auto-fill city field if it was empty
+        // Auto-fill city and state fields if empty
         if (result.cityName && !document.getElementById('churchCity').value.trim()) {
           document.getElementById('churchCity').value = result.cityName;
+        }
+        if (result.stateName && !document.getElementById('churchState').value.trim()) {
+          document.getElementById('churchState').value = result.stateName;
         }
 
         // Navigate to assessment
         goToStep(2);
 
-        // Religious data — fetch but don't display on Step 2 (will be shown later in assessment)
+        // Religious data — fetch using org's denomination
+        var userOrgId = currentUser ? (currentUser.orgId || '') : '';
         google.script.run
           .withSuccessHandler(function(rel) {
             var relDiv = document.getElementById('religiousProfile');
             if (rel.success) {
-              // Calculate city/ZIP share of county
               var localPop = (result.cityPop > 0) ? result.cityPop : result.population;
               var localName = result.cityName || ('ZIP ' + zip);
               var countyPop = rel.countyPop || 1;
               var sharePct = Math.round((localPop / countyPop) * 100);
               if (sharePct > 100) sharePct = 100;
 
+              var denomLabel = rel.denomName || 'Denomination';
+              var denomCongs = rel.denomCongregations || 0;
+              var denomAdh = rel.denomAdherents || 0;
+
               relDiv.innerHTML =
                 '<div class="rel-header">Community Religious Profile — ' + rel.county + ' County</div>' +
                 '<div class="rel-context">' + localName + ' represents <strong>' + sharePct + '%</strong> of ' + rel.county + ' County (pop ' + countyPop.toLocaleString() + '). Religious data below reflects the full county.</div>' +
                 '<div class="rel-grid">' +
                   '<div class="rel-card rel-ag">' +
-                    '<div class="rel-card-label">AG Presence</div>' +
-                    '<div class="rel-card-val">' + rel.agCongregations + ' churches</div>' +
-                    '<div class="rel-card-sub">' + rel.agAdherents.toLocaleString() + ' adherents countywide</div>' +
+                    '<div class="rel-card-label">' + denomLabel + ' Presence</div>' +
+                    '<div class="rel-card-val">' + denomCongs + ' churches</div>' +
+                    '<div class="rel-card-sub">' + denomAdh.toLocaleString() + ' adherents countywide</div>' +
                   '</div>' +
                   '<div class="rel-card">' +
                     '<div class="rel-card-label">Unchurched</div>' +
@@ -3295,14 +3556,14 @@ function runCensusLookup(zip, btn) {
                     '<div class="rel-card-sub">~' + rel.unchurchedCount.toLocaleString() + ' countywide</div>' +
                   '</div>' +
                   '<div class="rel-card">' +
-                    '<div class="rel-card-label">Evangelical</div>' +
-                    '<div class="rel-card-val">' + rel.evangelical.toLocaleString() + '</div>' +
-                    '<div class="rel-card-sub">competing audience</div>' +
+                    '<div class="rel-card-label">Total Adherents</div>' +
+                    '<div class="rel-card-val">' + rel.totalAdherents.toLocaleString() + '</div>' +
+                    '<div class="rel-card-sub">all denominations</div>' +
                   '</div>' +
                   '<div class="rel-card">' +
-                    '<div class="rel-card-label">Pentecostal</div>' +
-                    '<div class="rel-card-val">' + rel.pentecostal.toLocaleString() + '</div>' +
-                    '<div class="rel-card-sub">AG peers (CoG, Foursquare, etc.)</div>' +
+                    '<div class="rel-card-label">County Population</div>' +
+                    '<div class="rel-card-val">' + countyPop.toLocaleString() + '</div>' +
+                    '<div class="rel-card-sub">2020 Census</div>' +
                   '</div>' +
                 '</div>' +
                 '<div class="rel-landscape">' +
@@ -3314,7 +3575,7 @@ function runCensusLookup(zip, btn) {
             }
           })
           .withFailureHandler(function() {})
-          .lookupReligiousData(zip);
+          .lookupReligiousData(zip, userOrgId);
       } else {
         var errorDiv = document.getElementById('step1Error');
         errorDiv.textContent = result.error || 'Lookup failed. Please try again.';
@@ -3441,7 +3702,9 @@ function showReport() {
     answers: collectAnswers(),
     notes1: document.getElementById('notes1').value,
     notes2: document.getElementById('notes2').value,
-    notes3: document.getElementById('notes3').value
+    notes3: document.getElementById('notes3').value,
+    orgId: currentUser ? (currentUser.orgId || '') : '',
+    churchId: document.getElementById('churchName').getAttribute('data-church-id') || ''
   };
 
   google.script.run
@@ -3768,6 +4031,529 @@ document.addEventListener('selectstart', function(e) {
   e.preventDefault();
 });
 document.addEventListener('dragstart', function(e) { e.preventDefault(); });
+
+// ── CHURCH NAME FUZZY SEARCH (assessment flow) ──
+
+var searchTimer = null;
+function searchChurchName(query) {
+  var suggestEl = document.getElementById('churchSuggest');
+  if (!query || query.length < 2 || !currentUser) {
+    suggestEl.style.display = 'none';
+    return;
+  }
+
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(function() {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (!result.success || !result.matches || result.matches.length === 0) {
+          suggestEl.style.display = 'none';
+          return;
+        }
+        suggestEl.innerHTML = result.matches.map(function(m) {
+          return '<div class="church-suggest-item" onclick="selectChurch(\'' +
+            m.churchName.replace(/'/g, "\\'") + '\', \'' +
+            (m.city || '').replace(/'/g, "\\'") + '\', \'' +
+            (m.state || '').replace(/'/g, "\\'") + '\', \'' +
+            (m.pastorName || '').replace(/'/g, "\\'") + '\', \'' +
+            (m.churchId || '') + '\')">' +
+            '<div>' + m.churchName + '</div>' +
+            '<div class="church-suggest-city">' + [m.city, m.state].filter(Boolean).join(', ') +
+            (m.pastorName ? ' — ' + m.pastorName : '') + '</div>' +
+          '</div>';
+        }).join('');
+        suggestEl.style.display = 'block';
+      })
+      .withFailureHandler(function() { suggestEl.style.display = 'none'; })
+      .searchChurches({ query: query, orgId: currentUser.orgId || '' });
+  }, 300);
+}
+
+function selectChurch(name, city, state, pastor, churchId) {
+  document.getElementById('churchName').value = name;
+  if (city) document.getElementById('churchCity').value = city;
+  if (state) document.getElementById('churchState').value = state;
+  if (pastor) document.getElementById('pastorName').value = pastor;
+  document.getElementById('churchSuggest').style.display = 'none';
+  // Store churchId for submission
+  if (churchId) document.getElementById('churchName').setAttribute('data-church-id', churchId);
+}
+
+// Hide suggestions when clicking elsewhere
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.step-field')) {
+    var s = document.getElementById('churchSuggest');
+    if (s) s.style.display = 'none';
+  }
+});
+
+// ── CHURCH MANAGEMENT ──
+
+function toggleChurchPanel() {
+  var overlay = document.getElementById('churchOverlay');
+  if (overlay.classList.contains('active')) {
+    overlay.classList.remove('active');
+  } else {
+    overlay.classList.add('active');
+    loadChurchList();
+  }
+}
+
+function loadChurchList() {
+  var listEl = document.getElementById('churchList');
+  listEl.innerHTML = '<p style="color:var(--text-faint);font-size:13px;">Loading...</p>';
+
+  var params = { orgId: currentUser ? (currentUser.orgId || '') : '' };
+  // Section leaders only see their churches
+  if (currentUser && currentUser.role === 'SectionLeader') {
+    params.sectionLeaderRow = currentUser.userRow;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (!result.success || !result.churches || result.churches.length === 0) {
+        listEl.innerHTML = '<p style="color:var(--text-faint);font-size:13px;">No churches added yet.</p>';
+        return;
+      }
+
+      listEl.innerHTML = result.churches.map(function(ch) {
+        var statusBadge = ch.status === 'Active'
+          ? '<span class="church-active-badge">Active</span>'
+          : '<span class="church-inactive-badge">Inactive</span>';
+        var toggleLabel = ch.status === 'Active' ? 'Deactivate' : 'Reactivate';
+        var toggleClass = ch.status === 'Active' ? 'inactive' : '';
+
+        return '<div class="church-list-item">' +
+          '<div>' +
+            '<div class="church-list-name">' + ch.churchName + '</div>' +
+            '<div class="church-list-detail">' +
+              [ch.city, ch.state, ch.zip].filter(Boolean).join(', ') +
+              (ch.pastorName ? ' &middot; Pastor: ' + ch.pastorName : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="church-list-actions">' +
+            statusBadge +
+            '<button class="church-status-btn ' + toggleClass + '" onclick="handleChurchStatus(\'' + ch.churchId + '\', \'' + (ch.status === 'Active' ? 'Inactive' : 'Active') + '\', this)">' + toggleLabel + '</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    })
+    .withFailureHandler(function() {
+      listEl.innerHTML = '<p style="color:#991b1b;font-size:13px;">Failed to load churches.</p>';
+    })
+    .getChurches(params);
+}
+
+function handleAddChurch() {
+  var name = document.getElementById('newChurchName').value.trim();
+  var city = document.getElementById('newChurchCity').value.trim();
+  var state = document.getElementById('newChurchState').value.trim();
+  var zip = document.getElementById('newChurchZip').value.trim();
+  var pastor = document.getElementById('newChurchPastor').value.trim();
+  var pastorEmail = document.getElementById('newChurchPastorEmail').value.trim();
+  var msgEl = document.getElementById('churchMsg');
+
+  if (!name) {
+    msgEl.className = 'admin-msg error'; msgEl.textContent = 'Church name is required.';
+    return;
+  }
+
+  var btn = document.getElementById('addChurchBtn');
+  btn.textContent = 'Adding...'; btn.disabled = true;
+  msgEl.className = 'admin-msg'; msgEl.style.display = 'none';
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      btn.textContent = 'Add Church'; btn.disabled = false;
+      if (result.success) {
+        msgEl.className = 'admin-msg success';
+        msgEl.textContent = name + ' added successfully.';
+        // Clear form
+        document.getElementById('newChurchName').value = '';
+        document.getElementById('newChurchCity').value = '';
+        document.getElementById('newChurchState').value = '';
+        document.getElementById('newChurchZip').value = '';
+        document.getElementById('newChurchPastor').value = '';
+        document.getElementById('newChurchPastorEmail').value = '';
+        loadChurchList();
+      } else {
+        msgEl.className = 'admin-msg error';
+        msgEl.textContent = result.error || 'Failed to add church.';
+      }
+    })
+    .withFailureHandler(function() {
+      btn.textContent = 'Add Church'; btn.disabled = false;
+      msgEl.className = 'admin-msg error'; msgEl.textContent = 'Connection error.';
+    })
+    .addChurch({
+      churchName: name, city: city, state: state, zip: zip,
+      pastorName: pastor, pastorEmail: pastorEmail,
+      orgId: currentUser ? (currentUser.orgId || '') : '',
+      sectionLeaderRow: (currentUser && currentUser.role === 'SectionLeader') ? currentUser.userRow : '',
+      addedBy: currentUser ? currentUser.name : 'Unknown'
+    });
+}
+
+function toggleBulkUpload() {
+  var section = document.getElementById('bulkSection');
+  section.style.display = section.style.display === 'none' ? 'block' : 'none';
+}
+
+function handleBulkUpload() {
+  var raw = document.getElementById('bulkData').value.trim();
+  var msgEl = document.getElementById('bulkMsg');
+  if (!raw) {
+    msgEl.className = 'admin-msg error'; msgEl.textContent = 'Paste CSV data first.';
+    return;
+  }
+
+  var lines = raw.split('\n').filter(function(l) { return l.trim(); });
+  var churches = [];
+  for (var i = 0; i < lines.length; i++) {
+    var parts = lines[i].split(',').map(function(p) { return p.trim(); });
+    if (!parts[0]) continue;
+    churches.push({
+      churchName: parts[0] || '',
+      city: parts[1] || '',
+      state: parts[2] || '',
+      zip: parts[3] || '',
+      pastorName: parts[4] || '',
+      pastorEmail: parts[5] || ''
+    });
+  }
+
+  if (churches.length === 0) {
+    msgEl.className = 'admin-msg error'; msgEl.textContent = 'No valid entries found.';
+    return;
+  }
+
+  msgEl.className = 'admin-msg'; msgEl.style.display = 'none';
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success) {
+        msgEl.className = 'admin-msg success';
+        msgEl.textContent = result.added + ' of ' + result.total + ' churches added.';
+        document.getElementById('bulkData').value = '';
+        loadChurchList();
+      } else {
+        msgEl.className = 'admin-msg error';
+        msgEl.textContent = result.error || 'Bulk upload failed.';
+      }
+    })
+    .withFailureHandler(function() {
+      msgEl.className = 'admin-msg error'; msgEl.textContent = 'Connection error.';
+    })
+    .addChurchesBulk({
+      churches: churches,
+      orgId: currentUser ? (currentUser.orgId || '') : '',
+      sectionLeaderRow: (currentUser && currentUser.role === 'SectionLeader') ? currentUser.userRow : '',
+      addedBy: currentUser ? currentUser.name : 'Unknown'
+    });
+}
+
+function handleChurchStatus(churchId, newStatus, btn) {
+  btn.textContent = '...'; btn.disabled = true;
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success) { loadChurchList(); }
+      else { btn.textContent = 'Error'; btn.disabled = false; }
+    })
+    .withFailureHandler(function() { btn.textContent = 'Error'; btn.disabled = false; })
+    .updateChurchStatus({ churchId: churchId, status: newStatus, updatedBy: currentUser ? currentUser.name : '' });
+}
+
+// ── PENDING ORG APPROVAL ──
+
+function loadPendingOrgs() {
+  var section = document.getElementById('pendingOrgsSection');
+  var list = document.getElementById('pendingOrgsList');
+
+  // Only show for Admin/PlatformOwner
+  if (!currentUser || ['Admin','PlatformOwner'].indexOf(currentUser.role) === -1) {
+    section.style.display = 'none';
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (!result.success || !result.organizations) {
+        section.style.display = 'none';
+        return;
+      }
+
+      var pending = result.organizations.filter(function(o) { return o.status === 'Pending'; });
+      if (pending.length === 0) {
+        section.style.display = 'none';
+        return;
+      }
+
+      section.style.display = 'block';
+      list.innerHTML = pending.map(function(org) {
+        return '<div class="pending-org-card" id="orgCard_' + org.orgId + '">' +
+          '<div class="pending-org-top">' +
+            '<div>' +
+              '<div class="pending-org-name">' + org.orgName + '</div>' +
+              '<div class="pending-org-detail">' +
+                org.state + ' &middot; ' + org.denominationName + '<br>' +
+                org.adminName + ' &lt;' + org.adminEmail + '&gt;' +
+              '</div>' +
+            '</div>' +
+            '<button class="pending-org-approve" onclick="approveOrg(\'' + org.orgId + '\', this)">Approve</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    })
+    .withFailureHandler(function() { section.style.display = 'none'; })
+    .getOrganizations();
+}
+
+function approveOrg(orgId, btn) {
+  btn.textContent = 'Approving...';
+  btn.disabled = true;
+
+  // Generate random 4-digit PIN
+  var pin = String(Math.floor(1000 + Math.random() * 9000));
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success) {
+        var card = document.getElementById('orgCard_' + orgId);
+        if (card) {
+          var topDiv = card.querySelector('.pending-org-top');
+          var btnEl = card.querySelector('.pending-org-approve');
+          if (btnEl) btnEl.remove();
+          var status = document.createElement('div');
+          status.className = 'pending-org-status';
+          status.textContent = 'Approved — PIN: ' + pin;
+          topDiv.appendChild(status);
+        }
+      } else {
+        btn.textContent = 'Failed';
+        btn.disabled = false;
+      }
+    })
+    .withFailureHandler(function() {
+      btn.textContent = 'Error — Retry';
+      btn.disabled = false;
+    })
+    .approveOrganization({ orgId: orgId, adminPin: pin });
+}
+
+// ── DASHBOARD ──
+
+function toggleDashboard() {
+  var overlay = document.getElementById('dashboardOverlay');
+  if (overlay.classList.contains('active')) {
+    overlay.classList.remove('active');
+    return;
+  }
+  overlay.classList.add('active');
+  loadDashboard();
+}
+
+function loadDashboard() {
+  if (!currentUser) return;
+  var role = currentUser.role;
+  var listEl = document.getElementById('dashChurchList');
+  listEl.innerHTML = '<p style="color:var(--text-faint);font-size:13px;">Loading dashboard...</p>';
+
+  // Set title based on role
+  var titleEl = document.getElementById('dashTitle');
+  if (role === 'SectionLeader') {
+    titleEl.textContent = 'My Churches — Health Dashboard';
+  } else if (role === 'Admin') {
+    titleEl.textContent = 'District Health Dashboard';
+  } else {
+    titleEl.textContent = 'Platform Health Dashboard';
+  }
+
+  // Choose the right backend call
+  if (role === 'SectionLeader') {
+    google.script.run
+      .withSuccessHandler(renderDashboard)
+      .withFailureHandler(function(err) { listEl.innerHTML = '<p class="dash-no-data">Failed to load dashboard.</p>'; })
+      .getSectionDashboard({ orgId: currentUser.orgId, userRow: currentUser.userRow });
+  } else if (role === 'Admin') {
+    google.script.run
+      .withSuccessHandler(renderDashboard)
+      .withFailureHandler(function(err) { listEl.innerHTML = '<p class="dash-no-data">Failed to load dashboard.</p>'; })
+      .getDistrictDashboard({ orgId: currentUser.orgId });
+  } else if (role === 'PlatformOwner') {
+    // Platform owner sees all orgs — use admin dashboard with no org filter for now
+    google.script.run
+      .withSuccessHandler(renderDashboard)
+      .withFailureHandler(function(err) { listEl.innerHTML = '<p class="dash-no-data">Failed to load dashboard.</p>'; })
+      .getDistrictDashboard({ orgId: '' });
+  }
+}
+
+function renderDashboard(result) {
+  if (!result.success) {
+    document.getElementById('dashChurchList').innerHTML = '<p class="dash-no-data">' + (result.error || 'Failed to load.') + '</p>';
+    return;
+  }
+
+  var s = result.summary || {};
+  document.getElementById('dashGreen').textContent = s.green || 0;
+  document.getElementById('dashYellow').textContent = s.yellow || 0;
+  document.getElementById('dashRed').textContent = s.red || 0;
+  document.getElementById('dashUnassessed').textContent = s.unassessed || 0;
+  document.getElementById('dashTotal').textContent = s.total || 0;
+
+  var listEl = document.getElementById('dashChurchList');
+  var sections = result.sections || [];
+  var unassigned = result.unassigned || [];
+
+  // Admin/PlatformOwner with section leaders → grouped view
+  if (sections.length > 0 && currentUser && ['Admin','PlatformOwner'].indexOf(currentUser.role) >= 0) {
+    var html = '';
+    for (var i = 0; i < sections.length; i++) {
+      html += renderSectionGroup(sections[i]);
+    }
+    if (unassigned.length > 0) {
+      html += renderSectionGroup({ name: 'Unassigned Churches', churches: unassigned, summary: countRatings(unassigned) });
+    }
+    if (!html) html = '<p class="dash-no-data">No churches found. Add churches to start tracking health.</p>';
+    listEl.innerHTML = html;
+    return;
+  }
+
+  // Section leader or flat view
+  var churches = result.churches || [];
+  if (churches.length === 0) {
+    listEl.innerHTML = '<p class="dash-no-data">No churches found. Add churches to start tracking health.</p>';
+    return;
+  }
+  sortByRating(churches);
+  listEl.innerHTML = churches.map(renderChurchCard).join('');
+}
+
+function renderSectionGroup(sec) {
+  var counts = sec.summary || countRatings(sec.churches || []);
+  var churches = (sec.churches || []).slice();
+  sortByRating(churches);
+
+  return '<div class="dash-section-group">' +
+    '<div class="dash-section-header" onclick="toggleSectionBody(this)">' +
+      '<div>' +
+        '<div class="dash-section-name">' + sec.name + '</div>' +
+        '<div style="font-size:12px;color:var(--text-faint);">' + churches.length + ' church' + (churches.length !== 1 ? 'es' : '') + '</div>' +
+      '</div>' +
+      '<div class="dash-section-counts">' + renderMiniCounts(counts) + ' <span class="dash-section-arrow">&#9654;</span></div>' +
+    '</div>' +
+    '<div class="dash-section-body" style="display:none;">' +
+      churches.map(renderChurchCard).join('') +
+    '</div>' +
+  '</div>';
+}
+
+function toggleSectionBody(header) {
+  var body = header.nextElementSibling;
+  var arrow = header.querySelector('.dash-section-arrow');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    if (arrow) arrow.innerHTML = '&#9660;';
+  } else {
+    body.style.display = 'none';
+    if (arrow) arrow.innerHTML = '&#9654;';
+  }
+}
+
+function renderMiniCounts(c) {
+  var parts = [];
+  if (c.green) parts.push('<span style="color:#1a6b3c;font-weight:600;">' + c.green + ' &#9679;</span>');
+  if (c.yellow) parts.push('<span style="color:#a16207;font-weight:600;">' + c.yellow + ' &#9679;</span>');
+  if (c.red) parts.push('<span style="color:#991b1b;font-weight:600;">' + c.red + ' &#9679;</span>');
+  if (c.unassessed) parts.push('<span style="color:#9ca3af;">' + c.unassessed + ' —</span>');
+  return parts.join(' ');
+}
+
+function countRatings(churches) {
+  var c = { green: 0, yellow: 0, red: 0, unassessed: 0 };
+  churches.forEach(function(ch) {
+    if (!ch.latest) c.unassessed++;
+    else if (ch.latest.rating === 'GREEN') c.green++;
+    else if (ch.latest.rating === 'YELLOW') c.yellow++;
+    else c.red++;
+  });
+  return c;
+}
+
+function sortByRating(arr) {
+  var order = { 'RED': 0, 'YELLOW': 1, 'GREEN': 3 };
+  arr.sort(function(a, b) {
+    return (a.latest ? (order[a.latest.rating] || 2) : 2) - (b.latest ? (order[b.latest.rating] || 2) : 2);
+  });
+}
+
+function renderChurchCard(ch) {
+  var church = ch.church || {};
+  var latest = ch.latest || null;
+  var trend = ch.trend || 'none';
+  var history = ch.history || [];
+  var count = ch.assessmentCount || 0;
+
+  var badgeClass = 'none', badgeText = '—';
+  if (latest) {
+    badgeClass = latest.rating === 'GREEN' ? 'green' : latest.rating === 'YELLOW' ? 'yellow' : 'red';
+    badgeText = latest.score;
+  }
+
+  var trendHtml = '';
+  if (trend === 'improving') trendHtml = '<span class="dash-trend improving">&#9650;</span>';
+  else if (trend === 'declining') trendHtml = '<span class="dash-trend declining">&#9660;</span>';
+  else if (trend === 'stable') trendHtml = '<span class="dash-trend stable">&#9644;</span>';
+
+  var lastDate = '';
+  if (latest && latest.date) {
+    lastDate = new Date(latest.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  var historyHtml = '';
+  if (history.length > 0) {
+    for (var h = 0; h < history.length; h++) {
+      var he = history[h];
+      var hDate = new Date(he.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      var hDot = he.rating === 'GREEN' ? 'green' : he.rating === 'YELLOW' ? 'yellow' : 'red';
+      historyHtml +=
+        '<div class="dash-history-row">' +
+          '<div class="dash-history-dot ' + hDot + '"></div>' +
+          '<span>' + hDate + '</span>' +
+          '<span style="font-weight:600;">' + he.score + '/95</span>' +
+          '<span style="color:var(--text-faint);">' + (he.assessorRole || he.assessedBy || '') + '</span>' +
+        '</div>';
+    }
+  } else {
+    historyHtml = '<p style="font-size:13px;color:var(--text-faint);margin:8px 0 0;">No assessments yet.</p>';
+  }
+
+  return '<div class="dash-church-card" onclick="toggleHistory(this)">' +
+    '<div class="dash-church-top">' +
+      '<div>' +
+        '<div class="dash-church-name">' + (church.churchName || 'Unknown') + '</div>' +
+        '<div class="dash-church-city">' + [church.city, church.state].filter(Boolean).join(', ') + '</div>' +
+      '</div>' +
+      '<div class="dash-church-score">' + trendHtml +
+        '<div class="dash-score-badge ' + badgeClass + '">' + badgeText + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="dash-church-meta">' +
+      (lastDate ? 'Last assessed: ' + lastDate + ' &middot; ' : '') +
+      count + ' assessment' + (count !== 1 ? 's' : '') +
+      (church.pastorName ? ' &middot; Pastor: ' + church.pastorName : '') +
+    '</div>' +
+    '<div class="dash-history">' +
+      '<div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text-faint);margin-bottom:8px;">Assessment History</div>' +
+      historyHtml +
+    '</div>' +
+  '</div>';
+}
+
+function toggleHistory(card) {
+  var hist = card.querySelector('.dash-history');
+  if (hist) hist.classList.toggle('open');
+}
 
 // ── INIT ──
 document.addEventListener('DOMContentLoaded', function() {
