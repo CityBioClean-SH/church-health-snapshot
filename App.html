@@ -2332,34 +2332,31 @@
     <h1>Church Health Snapshot</h1>
     <p class="subtitle">Assessment Tool</p>
 
-    <div class="login-tabs">
-      <button class="login-tab active" onclick="switchLoginTab('pin')">PIN Code</button>
-      <button class="login-tab" onclick="switchLoginTab('email')">Email</button>
-    </div>
-
     <div id="pinLogin">
-      <p style="font-size:13px; color:var(--text-soft); margin-bottom:16px;">Enter your 4-digit access code</p>
+      <p style="font-size:13px; color:var(--text-soft); margin-bottom:16px;">Enter your 6-digit access code</p>
       <div class="pin-input">
         <input type="text" maxlength="1" inputmode="numeric" id="pin1" autofocus>
         <input type="text" maxlength="1" inputmode="numeric" id="pin2">
         <input type="text" maxlength="1" inputmode="numeric" id="pin3">
         <input type="text" maxlength="1" inputmode="numeric" id="pin4">
+        <input type="text" maxlength="1" inputmode="numeric" id="pin5">
+        <input type="text" maxlength="1" inputmode="numeric" id="pin6">
       </div>
       <p class="login-error" id="pinError">Invalid PIN. Please try again.</p>
       <button class="login-btn" onclick="handlePinLogin()">Sign In</button>
+      <p style="margin-top:16px;"><a href="#" onclick="showForgotPin(); return false;" style="color:var(--gold); font-size:13px; text-decoration:none;">Forgot your PIN?</a></p>
     </div>
 
-    <div id="emailLogin" style="display:none;">
+    <div id="forgotPinView" style="display:none;">
+      <p style="font-size:13px; color:var(--text-soft); margin-bottom:16px;">Enter the email address on your account and we'll send you a new PIN.</p>
       <div class="login-field">
         <label>Email Address</label>
-        <input type="email" id="emailInput" placeholder="you@church.org">
+        <input type="email" id="recoveryEmail" placeholder="you@church.org">
       </div>
-      <div class="login-field">
-        <label>Password</label>
-        <input type="password" id="passwordInput" placeholder="Enter your password">
-      </div>
-      <p class="login-error" id="emailError">Invalid credentials. Please try again.</p>
-      <button class="login-btn" onclick="handleEmailLogin()">Sign In</button>
+      <p class="login-error" id="recoveryError"></p>
+      <p class="login-success" id="recoverySuccess" style="display:none; color:var(--green); font-size:13px; margin-bottom:12px;"></p>
+      <button class="login-btn" onclick="handleForgotPin()">Send New PIN</button>
+      <p style="margin-top:16px;"><a href="#" onclick="hideForgotPin(); return false;" style="color:var(--gold); font-size:13px; text-decoration:none;">Back to sign in</a></p>
     </div>
 
     <p class="login-footer">Contact your district administrator for access credentials</p>
@@ -2899,7 +2896,7 @@
         </div>
         <div class="admin-form-group">
           <label>PIN (4 digits)</label>
-          <input type="text" id="newUserPin" placeholder="1234" maxlength="4" pattern="[0-9]*">
+          <input type="text" id="newUserPin" placeholder="123456" maxlength="6" pattern="[0-9]*">
         </div>
       </div>
       <div class="admin-form-group">
@@ -3069,12 +3066,6 @@ Grace Church, Tallahassee, FL, 32303, Jane Doe, jane@grace.org"></textarea>
 let currentUser = null;
 
 // ── LOGIN ──
-function switchLoginTab(tab) {
-  document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('pinLogin').style.display = tab === 'pin' ? 'block' : 'none';
-  document.getElementById('emailLogin').style.display = tab === 'email' ? 'block' : 'none';
-}
 
 document.querySelectorAll('.pin-input input').forEach((inp, i, arr) => {
   inp.addEventListener('input', () => {
@@ -3087,53 +3078,81 @@ document.querySelectorAll('.pin-input input').forEach((inp, i, arr) => {
   });
 });
 
+function showForgotPin() {
+  document.getElementById('pinLogin').style.display = 'none';
+  document.getElementById('forgotPinView').style.display = 'block';
+  document.getElementById('recoveryEmail').focus();
+  document.getElementById('recoveryError').style.display = 'none';
+  document.getElementById('recoverySuccess').style.display = 'none';
+}
+
+function hideForgotPin() {
+  document.getElementById('forgotPinView').style.display = 'none';
+  document.getElementById('pinLogin').style.display = 'block';
+  document.getElementById('pin1').focus();
+}
+
+function handleForgotPin() {
+  var email = document.getElementById('recoveryEmail').value.trim();
+  if (!email) {
+    document.getElementById('recoveryError').textContent = 'Please enter your email address.';
+    document.getElementById('recoveryError').style.display = 'block';
+    return;
+  }
+  var btn = document.querySelector('#forgotPinView .login-btn');
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+  document.getElementById('recoveryError').style.display = 'none';
+  document.getElementById('recoverySuccess').style.display = 'none';
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      btn.textContent = 'Send New PIN';
+      btn.disabled = false;
+      if (result.success) {
+        document.getElementById('recoverySuccess').textContent = 'If that email is on file, a new PIN has been sent. Check your inbox.';
+        document.getElementById('recoverySuccess').style.display = 'block';
+        document.getElementById('recoveryEmail').value = '';
+      } else {
+        document.getElementById('recoveryError').textContent = result.error || 'Something went wrong. Please try again.';
+        document.getElementById('recoveryError').style.display = 'block';
+      }
+    })
+    .withFailureHandler(function() {
+      btn.textContent = 'Send New PIN';
+      btn.disabled = false;
+      document.getElementById('recoveryError').textContent = 'Connection error. Please try again.';
+      document.getElementById('recoveryError').style.display = 'block';
+    })
+    .recoverPIN(email);
+}
+
 function handlePinLogin() {
-  const pin = ['pin1','pin2','pin3','pin4'].map(id => document.getElementById(id).value).join('');
-  document.querySelector('.login-btn').textContent = 'Signing in...';
-  document.querySelector('.login-btn').disabled = true;
+  const pin = ['pin1','pin2','pin3','pin4','pin5','pin6'].map(id => document.getElementById(id).value).join('');
+  var btn = document.querySelector('#pinLogin .login-btn');
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
 
   google.script.run
     .withSuccessHandler(result => {
-      document.querySelector('.login-btn').textContent = 'Sign In';
-      document.querySelector('.login-btn').disabled = false;
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
       if (result.success) {
-        loginAs({ name: result.name, initials: result.name.split(' ').map(w=>w[0]).join('').substring(0,2), role: result.role, church: result.church, firstLogin: result.firstLogin, orgId: result.orgId || '', orgName: result.orgName || '', denomName: result.denomName || 'Assemblies of God', userRow: result.userRow || 0 });
+        loginAs({ name: result.name, initials: result.name.split(' ').map(w=>w[0]).join('').substring(0,2), role: result.role, church: result.church, firstLogin: result.firstLogin, orgId: result.orgId || '', orgName: result.orgName || '', denomName: result.denomName || 'Assemblies of God', userRow: result.userRow || 0, email: result.email || '' });
       } else {
+        document.getElementById('pinError').textContent = result.error || 'Invalid PIN. Please try again.';
         document.getElementById('pinError').style.display = 'block';
         document.querySelectorAll('.pin-input input').forEach(i => { i.value = ''; });
         document.getElementById('pin1').focus();
       }
     })
     .withFailureHandler(err => {
-      document.querySelector('.login-btn').textContent = 'Sign In';
-      document.querySelector('.login-btn').disabled = false;
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
       document.getElementById('pinError').textContent = 'Connection error. Please try again.';
       document.getElementById('pinError').style.display = 'block';
     })
     .verifyPIN(pin);
-}
-
-function handleEmailLogin() {
-  const email = document.getElementById('emailInput').value;
-  const pass = document.getElementById('passwordInput').value;
-  if (!email || !pass) {
-    document.getElementById('emailError').style.display = 'block';
-    return;
-  }
-
-  google.script.run
-    .withSuccessHandler(result => {
-      if (result.success) {
-        loginAs({ name: result.name, initials: result.name.split(' ').map(w=>w[0]).join('').substring(0,2), role: result.role, church: result.church, firstLogin: result.firstLogin, orgId: result.orgId || '', orgName: result.orgName || '', denomName: result.denomName || 'Assemblies of God', userRow: result.userRow || 0 });
-      } else {
-        document.getElementById('emailError').style.display = 'block';
-      }
-    })
-    .withFailureHandler(err => {
-      document.getElementById('emailError').textContent = 'Connection error. Please try again.';
-      document.getElementById('emailError').style.display = 'block';
-    })
-    .verifyEmail(email, pass);
 }
 
 function loginAs(user) {
@@ -3214,6 +3233,7 @@ function loadUserList() {
             '</div>' +
             '<div class="admin-user-actions">' +
               '<button class="admin-action-btn" onclick="handleEditUser(' + u.row + ',\'' + u.pin.replace(/'/g,"\\'") + '\',\'' + u.name.replace(/'/g,"\\'") + '\',\'' + (u.email||'').replace(/'/g,"\\'") + '\',\'' + u.role.replace(/'/g,"\\'") + '\',\'' + (u.church||'').replace(/'/g,"\\'") + '\')">Edit</button>' +
+              '<button class="admin-action-btn" onclick="handleResetPin(' + u.row + ',\'' + u.name.replace(/'/g,"\\'") + '\')" style="color:var(--gold);">Reset PIN</button>' +
               '<span class="admin-user-role">' + u.role + '</span>' +
               '<button class="admin-action-btn ' + toggleClass + '" onclick="handleToggleUser(' + u.row + ')">' + toggleLabel + '</button>' +
             '</div>' +
@@ -3221,7 +3241,7 @@ function loadUserList() {
           '<li class="admin-edit-form" id="edit-form-' + u.row + '">' +
             '<div class="admin-edit-row">' +
               '<input type="text" id="edit-name-' + u.row + '" placeholder="Name">' +
-              '<input type="text" id="edit-pin-' + u.row + '" placeholder="PIN" maxlength="4">' +
+              '<input type="text" id="edit-pin-' + u.row + '" placeholder="PIN" maxlength="6">' +
             '</div>' +
             '<div class="admin-edit-row">' +
               '<input type="email" id="edit-email-' + u.row + '" placeholder="Email">' +
@@ -3301,7 +3321,7 @@ function handleSaveUser(row) {
       saveBtn.disabled = false;
       alert('Connection error. Please try again.');
     })
-    .updateUser({ row: row, pin: pin, name: name, email: email, role: role, church: church });
+    .updateUser({ row: row, pin: pin, name: name, email: email, role: role, church: church, callerRole: currentUser ? currentUser.role : '', callerOrgId: currentUser ? (currentUser.orgId || '') : '' });
 }
 
 function handleToggleUser(row) {
@@ -3319,7 +3339,32 @@ function handleToggleUser(row) {
     .withFailureHandler(function() {
       alert('Connection error. Please try again.');
     })
-    .toggleUserActive({ row: row });
+    .toggleUserActive({ row: row, callerRole: currentUser ? currentUser.role : '', callerOrgId: currentUser ? (currentUser.orgId || '') : '' });
+}
+
+function handleResetPin(row, name) {
+  if (!confirm('Reset PIN for ' + name + '? A new 6-digit PIN will be generated.')) return;
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      if (result.success) {
+        var msgEl = document.getElementById('adminMsg');
+        msgEl.className = 'admin-msg success';
+        msgEl.textContent = result.userName + '\'s new PIN is: ' + result.newPin;
+        loadUserList();
+      } else {
+        alert(result.error || 'Failed to reset PIN.');
+      }
+    })
+    .withFailureHandler(function() {
+      alert('Connection error. Please try again.');
+    })
+    .adminResetPIN({
+      userRow: row,
+      callerRole: currentUser ? currentUser.role : '',
+      callerOrgId: currentUser ? (currentUser.orgId || '') : '',
+      callerName: currentUser ? currentUser.name : ''
+    });
 }
 
 function handleAddUser() {
@@ -3335,9 +3380,9 @@ function handleAddUser() {
     msgEl.textContent = 'Name and PIN are required.';
     return;
   }
-  if (pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+  if (pin.length !== 6 || !/^\d{6}$/.test(pin)) {
     msgEl.className = 'admin-msg error';
-    msgEl.textContent = 'PIN must be exactly 4 digits.';
+    msgEl.textContent = 'PIN must be exactly 6 digits.';
     return;
   }
 
@@ -3372,7 +3417,7 @@ function handleAddUser() {
       msgEl.className = 'admin-msg error';
       msgEl.textContent = 'Connection error. Please try again.';
     })
-    .addUser({ pin: pin, name: name, email: email, role: role, church: church, orgId: currentUser ? (currentUser.orgId || '') : '' });
+    .addUser({ pin: pin, name: name, email: email, role: role, church: church, orgId: currentUser ? (currentUser.orgId || '') : '', callerRole: currentUser ? currentUser.role : '', callerOrgId: currentUser ? (currentUser.orgId || '') : '' });
 }
 
 // ── WELCOME WALKTHROUGH ──
@@ -4260,7 +4305,7 @@ function handleChurchStatus(churchId, newStatus, btn) {
       else { btn.textContent = 'Error'; btn.disabled = false; }
     })
     .withFailureHandler(function() { btn.textContent = 'Error'; btn.disabled = false; })
-    .updateChurchStatus({ churchId: churchId, status: newStatus, updatedBy: currentUser ? currentUser.name : '' });
+    .updateChurchStatus({ churchId: churchId, status: newStatus, updatedBy: currentUser ? currentUser.name : '', callerRole: currentUser ? currentUser.role : '', callerOrgId: currentUser ? (currentUser.orgId || '') : '' });
 }
 
 // ── PENDING ORG APPROVAL ──
@@ -4337,7 +4382,7 @@ function approveOrg(orgId, btn) {
       btn.textContent = 'Error — Retry';
       btn.disabled = false;
     })
-    .approveOrganization({ orgId: orgId, adminPin: pin });
+    .approveOrganization({ orgId: orgId, adminPin: pin, callerRole: currentUser ? currentUser.role : '' });
 }
 
 // ── DASHBOARD ──

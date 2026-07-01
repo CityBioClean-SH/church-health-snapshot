@@ -159,8 +159,12 @@ function setupMultiTenant() {
   Logger.log('Multi-tenant migration complete.');
 }
 
-function setupCensusKey() {
-  PropertiesService.getScriptProperties().setProperty('CENSUS_API_KEY', 'b084691f5c7c1ab4b82caec5dbf0988f2d31dca8');
+function setupCensusKey(key) {
+  if (!key) {
+    Logger.log('Usage: setupCensusKey("your-api-key-here"). Run this from the Apps Script editor.');
+    return;
+  }
+  PropertiesService.getScriptProperties().setProperty('CENSUS_API_KEY', key);
   Logger.log('Census API key stored in Script Properties.');
 }
 
@@ -370,6 +374,15 @@ function doGet(e) {
 
 function verifyPIN(pin) {
   try {
+    // Rate limiting: max 5 attempts per 15 minutes per session
+    var cache = CacheService.getScriptCache();
+    var cacheKey = 'login_attempts_' + (Session.getTemporaryActiveUserKey() || 'anon');
+    var attempts = parseInt(cache.get(cacheKey) || '0');
+    if (attempts >= 5) {
+      logAudit('Unknown', 'LOGIN_BLOCKED', 'Too many attempts');
+      return { success: false, error: 'Too many attempts. Please wait 15 minutes.' };
+    }
+
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const users = ss.getSheetByName('Users');
     const data = users.getDataRange().getValues();
@@ -390,6 +403,7 @@ function verifyPIN(pin) {
 
         logAudit(data[i][1], 'LOGIN', 'PIN login successful' + (isFirstLogin ? ' (first time)' : '') + (orgId ? ' [' + orgId + ']' : ''));
 
+        cache.remove(cacheKey); // Reset on successful login
         return {
           success: true,
           name: data[i][1],
@@ -405,6 +419,7 @@ function verifyPIN(pin) {
       }
     }
 
+    cache.put(cacheKey, String(attempts + 1), 900); // 15 min expiry
     logAudit('Unknown', 'LOGIN_FAILED', 'PIN: ' + pin);
     return { success: false, error: 'Invalid PIN' };
   } catch(e) {
@@ -412,47 +427,125 @@ function verifyPIN(pin) {
   }
 }
 
-function verifyEmail(email, password) {
+/** Self-service PIN recovery — sends new PIN to user's email on file */
+function recoverPIN(email) {
   try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const users = ss.getSheetByName('Users');
-    const data = users.getDataRange().getValues();
-    var headers = data[0];
-    var orgIdCol = headers.indexOf('OrgID');
+    if (!email || !String(email).trim()) return { success: false, error: 'Email address is required' };
+    email = String(email).trim().toLowerCase();
 
-    for (let i = 1; i < data.length; i++) {
-      if (String(data[i][2]).toLowerCase() === String(email).toLowerCase() && data[i][7] === 'Y') {
-        users.getRange(i + 1, 7).setValue(new Date());
+    var lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try {
+      var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      var users = ss.getSheetByName('Users');
+      var data = users.getDataRange().getValues();
 
-        var isFirstLogin = (data[i][8] === 'Y');
-        if (isFirstLogin) {
-          users.getRange(i + 1, 9).setValue('N');
+      for (var i = 1; i < data.length; i++) {
+        if (String(data[i][2]).toLowerCase() === email && data[i][7] === 'Y') {
+          // Generate new 6-digit PIN
+          var newPin = String(Math.floor(100000 + Math.random() * 900000));
+
+          // Check for duplicate
+          var isDupe = data.some(function(row, idx) { return idx > 0 && String(row[0]) === newPin; });
+          if (isDupe) newPin = String(Math.floor(100000 + Math.random() * 900000));
+
+          // Update PIN in sheet
+          users.getRange(i + 1, 1).setValue(newPin);
+
+          // Send recovery email
+          var appUrl = ScriptApp.getService().getUrl();
+          var orgId = '';
+          var headers = data[0];
+          var orgIdCol = headers.indexOf('OrgID');
+          if (orgIdCol >= 0) orgId = String(data[i][orgIdCol]);
+          var org = orgId ? getOrgById_(orgId) : null;
+          var orgName = org ? org.orgName : 'Church Health Snapshot';
+
+          MailApp.sendEmail({
+            to: email,
+            subject: 'Your New PIN — Church Health Snapshot',
+            htmlBody: '<div style="font-family:\'Segoe UI\',sans-serif;max-width:560px;margin:0 auto;">' +
+              '<div style="background:#1b2541;padding:28px 24px;border-radius:10px 10px 0 0;text-align:center;">' +
+                '<h1 style="margin:0;color:white;font-size:22px;">PIN Recovery</h1>' +
+                '<p style="margin:6px 0 0;color:#c9a227;font-size:13px;">' + orgName + '</p>' +
+              '</div>' +
+              '<div style="padding:28px 24px;border:1px solid #e5e1d8;border-top:none;border-radius:0 0 10px 10px;background:#fdfcf8;">' +
+                '<p style="font-size:15px;color:#1f2937;">Hi ' + data[i][1] + ',</p>' +
+                '<p style="font-size:14px;color:#4b5563;line-height:1.6;">You requested a PIN reset. Here is your new PIN:</p>' +
+                '<div style="background:white;border:1px solid #e5e1d8;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">' +
+                  '<div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#9ca3af;margin-bottom:6px;">Your New PIN</div>' +
+                  '<div style="font-size:36px;font-weight:700;color:#1b2541;letter-spacing:4px;">' + newPin + '</div>' +
+                '</div>' +
+                '<div style="text-align:center;margin:24px 0;">' +
+                  '<a href="' + appUrl + '" style="display:inline-block;background:#1b2541;color:white;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px;">Open Assessment Tool</a>' +
+                '</div>' +
+                '<p style="font-size:12px;color:#9ca3af;text-align:center;">If you did not request this, contact your district administrator.</p>' +
+              '</div>' +
+            '</div>',
+            name: 'Church Health Snapshot',
+            noReply: true
+          });
+
+          logAudit(data[i][1], 'PIN_RECOVERY', 'New PIN sent to ' + email);
+          return { success: true };
         }
-
-        var orgId = orgIdCol >= 0 ? String(data[i][orgIdCol]) : '';
-        var org = orgId ? getOrgById_(orgId) : null;
-
-        logAudit(data[i][1], 'LOGIN', 'Email login: ' + email + (isFirstLogin ? ' (first time)' : '') + (orgId ? ' [' + orgId + ']' : ''));
-
-        return {
-          success: true,
-          name: data[i][1],
-          email: data[i][2],
-          role: data[i][3],
-          church: data[i][4],
-          firstLogin: isFirstLogin,
-          orgId: orgId,
-          orgName: org ? org.orgName : '',
-          denomName: org ? org.denominationName : 'Assemblies of God',
-          userRow: i + 1
-        };
       }
+
+      // Don't reveal whether email exists — always return same message
+      logAudit('Unknown', 'PIN_RECOVERY_ATTEMPT', email);
+      return { success: true };
+    } finally {
+      lock.releaseLock();
+    }
+  } catch(e) {
+    return { success: false, error: 'Recovery failed. Please try again.' };
+  }
+}
+
+/** Admin/SectionLeader PIN reset — generates new PIN and returns it */
+function adminResetPIN(data) {
+  try {
+    var callerRole = data.callerRole || '';
+    var callerOrgId = data.callerOrgId || '';
+
+    // Only Admin, SectionLeader, or PlatformOwner can reset PINs
+    if (['Admin', 'SectionLeader', 'PlatformOwner'].indexOf(callerRole) === -1) {
+      return { success: false, error: 'Not authorized to reset PINs' };
     }
 
-    logAudit('Unknown', 'LOGIN_FAILED', 'Email: ' + email);
-    return { success: false, error: 'Invalid credentials' };
+    var lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try {
+      var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      var users = ss.getSheetByName('Users');
+      var allData = users.getDataRange().getValues();
+      var headers = allData[0];
+      var orgIdCol = headers.indexOf('OrgID');
+      var row = data.userRow;
+
+      if (row < 2 || row > allData.length) return { success: false, error: 'Invalid user' };
+
+      // Verify caller has access to this user's org
+      var targetOrgId = orgIdCol >= 0 ? String(allData[row - 1][orgIdCol]) : '';
+      if (callerRole !== 'PlatformOwner' && callerOrgId && targetOrgId !== callerOrgId) {
+        return { success: false, error: 'Cannot reset PIN for users in another organization' };
+      }
+
+      // Generate new 6-digit PIN
+      var newPin = String(Math.floor(100000 + Math.random() * 900000));
+      var isDupe = allData.some(function(r, idx) { return idx > 0 && String(r[0]) === newPin; });
+      if (isDupe) newPin = String(Math.floor(100000 + Math.random() * 900000));
+
+      users.getRange(row, 1).setValue(newPin);
+      var userName = allData[row - 1][1];
+
+      logAudit(data.callerName || 'ADMIN', 'PIN_RESET', 'Reset PIN for ' + userName + ' (row ' + row + ')');
+      return { success: true, newPin: newPin, userName: userName };
+    } finally {
+      lock.releaseLock();
+    }
   } catch(e) {
-    return { success: false, error: 'Authentication error' };
+    return { success: false, error: 'PIN reset failed: ' + e.message };
   }
 }
 
@@ -629,47 +722,53 @@ function calculateScore(answers) {
 
 function submitAssessment(data) {
   try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const assess = ss.getSheetByName('Assessments');
+    var lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try {
+      const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      const assess = ss.getSheetByName('Assessments');
 
-    const result = calculateScore(data.answers);
+      const result = calculateScore(data.answers);
 
-    const a = data.answers;
-    const row = [
-      new Date(),
-      data.userName,
-      data.userRole,
-      data.churchName,
-      data.pastorName,
-      a.q1, a.q2, a.q3, a.q4, a.q5, a.q6, a.q7, a.q8,
-      a.q8b, a.q9, a.q10, a.q11, a.q12,
-      a.q13, a.q14, a.q15, a.q16, a.q17,
-      a.q18, a.q19, a.q20, a.q21, a.q22, a.q23,
-      a.q24, a.q25, a.q26, a.q27, a.q28,
-      data.notes1 || '', data.notes2 || '', data.notes3 || '',
-      result.score, result.rating, result.s1, result.s2, result.s3,
-      data.orgId || '', data.churchId || '', data.userRole || ''
-    ];
+      const a = data.answers;
+      const row = [
+        new Date(),
+        data.userName,
+        data.userRole,
+        data.churchName,
+        data.pastorName,
+        a.q1, a.q2, a.q3, a.q4, a.q5, a.q6, a.q7, a.q8,
+        a.q8b, a.q9, a.q10, a.q11, a.q12,
+        a.q13, a.q14, a.q15, a.q16, a.q17,
+        a.q18, a.q19, a.q20, a.q21, a.q22, a.q23,
+        a.q24, a.q25, a.q26, a.q27, a.q28,
+        data.notes1 || '', data.notes2 || '', data.notes3 || '',
+        result.score, result.rating, result.s1, result.s2, result.s3,
+        data.orgId || '', data.churchId || '', data.userRole || ''
+      ];
 
-    assess.appendRow(row);
+      assess.appendRow(row);
 
-    logAudit(data.userName, 'SUBMIT',
-      data.churchName + ' — Score: ' + result.score + ' (' + result.rating + ')' +
-      (data.orgId ? ' [' + data.orgId + ']' : ''));
+      logAudit(data.userName, 'SUBMIT',
+        data.churchName + ' — Score: ' + result.score + ' (' + result.rating + ')' +
+        (data.orgId ? ' [' + data.orgId + ']' : ''));
 
-    // Send admin email to org's admin, not hardcoded
-    sendAdminCopy(data, result);
+      // Send admin email to org's admin, not hardcoded
+      sendAdminCopy(data, result);
 
-    return {
-      success: true,
-      score: result.score,
-      rating: result.rating,
-      s1: result.s1,
-      s2: result.s2,
-      s3: result.s3,
-      categories: result.categories,
-      findings: result.findings
-    };
+      return {
+        success: true,
+        score: result.score,
+        rating: result.rating,
+        s1: result.s1,
+        s2: result.s2,
+        s3: result.s3,
+        categories: result.categories,
+        findings: result.findings
+      };
+    } finally {
+      lock.releaseLock();
+    }
   } catch(e) {
     logAudit(data.userName || 'Unknown', 'SUBMIT_ERROR', e.message);
     return { success: false, error: 'Failed to submit assessment' };
@@ -829,24 +928,39 @@ function addUser(data) {
   try {
     var pin = data.pin, name = data.name, email = data.email, role = data.role, church = data.church;
     var orgId = data.orgId || '';
-    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    var users = ss.getSheetByName('Users');
 
-    var existing = users.getDataRange().getValues();
-    for (var i = 1; i < existing.length; i++) {
-      if (String(existing[i][0]) === String(pin)) {
-        return { success: false, error: 'PIN already in use' };
+    // Verify caller has admin access to this org
+    if (data.callerRole && ['Admin', 'PlatformOwner'].indexOf(data.callerRole) === -1) {
+      return { success: false, error: 'Not authorized to add users' };
+    }
+    if (data.callerRole === 'Admin' && data.callerOrgId && orgId && data.callerOrgId !== orgId) {
+      return { success: false, error: 'Cannot add users to another organization' };
+    }
+
+    var lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try {
+      var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      var users = ss.getSheetByName('Users');
+
+      var existing = users.getDataRange().getValues();
+      for (var i = 1; i < existing.length; i++) {
+        if (String(existing[i][0]) === String(pin)) {
+          return { success: false, error: 'PIN already in use' };
+        }
       }
+
+      users.appendRow([String(pin), name, email || '', role, church || '', new Date(), '', 'Y', 'Y', orgId]);
+      logAudit('ADMIN', 'USER_ADDED', name + ' (' + role + ')' + (orgId ? ' [' + orgId + ']' : ''));
+
+      if (email) {
+        sendWelcomeEmail(name, email, pin, role, orgId);
+      }
+
+      return { success: true };
+    } finally {
+      lock.releaseLock();
     }
-
-    users.appendRow([String(pin), name, email || '', role, church || '', new Date(), '', 'Y', 'Y', orgId]);
-    logAudit('ADMIN', 'USER_ADDED', name + ' (' + role + ')' + (orgId ? ' [' + orgId + ']' : ''));
-
-    if (email) {
-      sendWelcomeEmail(name, email, pin, role, orgId);
-    }
-
-    return { success: true };
   } catch(e) {
     return { success: false, error: e.message };
   }
@@ -940,29 +1054,45 @@ function getUsers(params) {
 
 function updateUser(data) {
   try {
-    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    var users = ss.getSheetByName('Users');
-    var all = users.getDataRange().getValues();
-    var row = data.row;
+    var lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try {
+      var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      var users = ss.getSheetByName('Users');
+      var all = users.getDataRange().getValues();
+      var row = data.row;
 
-    if (row < 2 || row > all.length) return { success: false, error: 'Invalid user row' };
+      if (row < 2 || row > all.length) return { success: false, error: 'Invalid user row' };
 
-    // Check for duplicate PIN (excluding this user's row)
-    if (data.pin) {
-      for (var i = 1; i < all.length; i++) {
-        if ((i + 1) !== row && String(all[i][0]) === String(data.pin)) {
-          return { success: false, error: 'PIN already in use by ' + all[i][1] };
+      // Verify caller can modify this user's org
+      var headers = all[0];
+      var orgIdCol = headers.indexOf('OrgID');
+      if (data.callerRole === 'Admin' && data.callerOrgId) {
+        var targetOrgId = orgIdCol >= 0 ? String(all[row - 1][orgIdCol]) : '';
+        if (targetOrgId && data.callerOrgId !== targetOrgId) {
+          return { success: false, error: 'Cannot modify users in another organization' };
         }
       }
-      users.getRange(row, 1).setValue(String(data.pin));
-    }
-    if (data.name) users.getRange(row, 2).setValue(data.name);
-    if (data.email !== undefined) users.getRange(row, 3).setValue(data.email);
-    if (data.role) users.getRange(row, 4).setValue(data.role);
-    if (data.church !== undefined) users.getRange(row, 5).setValue(data.church);
 
-    logAudit('ADMIN', 'USER_UPDATED', data.name + ' (row ' + row + ')');
-    return { success: true };
+      // Check for duplicate PIN (excluding this user's row)
+      if (data.pin) {
+        for (var i = 1; i < all.length; i++) {
+          if ((i + 1) !== row && String(all[i][0]) === String(data.pin)) {
+            return { success: false, error: 'PIN already in use by ' + all[i][1] };
+          }
+        }
+        users.getRange(row, 1).setValue(String(data.pin));
+      }
+      if (data.name) users.getRange(row, 2).setValue(data.name);
+      if (data.email !== undefined) users.getRange(row, 3).setValue(data.email);
+      if (data.role) users.getRange(row, 4).setValue(data.role);
+      if (data.church !== undefined) users.getRange(row, 5).setValue(data.church);
+
+      logAudit('ADMIN', 'USER_UPDATED', data.name + ' (row ' + row + ')');
+      return { success: true };
+    } finally {
+      lock.releaseLock();
+    }
   } catch(e) {
     return { success: false, error: e.message };
   }
@@ -970,20 +1100,36 @@ function updateUser(data) {
 
 function toggleUserActive(data) {
   try {
-    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    var users = ss.getSheetByName('Users');
-    var all = users.getDataRange().getValues();
-    var row = data.row;
+    var lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try {
+      var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      var users = ss.getSheetByName('Users');
+      var all = users.getDataRange().getValues();
+      var row = data.row;
 
-    if (row < 2 || row > all.length) return { success: false, error: 'Invalid user row' };
+      if (row < 2 || row > all.length) return { success: false, error: 'Invalid user row' };
 
-    var currentStatus = all[row - 1][7];
-    var newStatus = (currentStatus === 'Y') ? 'N' : 'Y';
-    users.getRange(row, 8).setValue(newStatus);
+      // Verify caller can modify this user's org
+      var headers = all[0];
+      var orgIdCol = headers.indexOf('OrgID');
+      if (data.callerRole === 'Admin' && data.callerOrgId) {
+        var targetOrgId = orgIdCol >= 0 ? String(all[row - 1][orgIdCol]) : '';
+        if (targetOrgId && data.callerOrgId !== targetOrgId) {
+          return { success: false, error: 'Cannot modify users in another organization' };
+        }
+      }
 
-    var userName = all[row - 1][1];
-    logAudit('ADMIN', newStatus === 'Y' ? 'USER_ENABLED' : 'USER_DISABLED', userName);
-    return { success: true, active: newStatus, name: userName };
+      var currentStatus = all[row - 1][7];
+      var newStatus = (currentStatus === 'Y') ? 'N' : 'Y';
+      users.getRange(row, 8).setValue(newStatus);
+
+      var userName = all[row - 1][1];
+      logAudit('ADMIN', newStatus === 'Y' ? 'USER_ENABLED' : 'USER_DISABLED', userName);
+      return { success: true, active: newStatus, name: userName };
+    } finally {
+      lock.releaseLock();
+    }
   } catch(e) {
     return { success: false, error: e.message };
   }
@@ -993,30 +1139,36 @@ function toggleUserActive(data) {
 
 function addChurch(data) {
   try {
-    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    var churches = ss.getSheetByName('Churches');
-    if (!churches) return { success: false, error: 'Churches sheet not found. Run setupMultiTenant().' };
+    var lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try {
+      var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      var churches = ss.getSheetByName('Churches');
+      if (!churches) return { success: false, error: 'Churches sheet not found. Run setupMultiTenant().' };
 
-    var existing = churches.getDataRange().getValues();
-    var nextId = 'CH' + String(existing.length).padStart(4, '0');
+      var existing = churches.getDataRange().getValues();
+      var nextId = 'CH' + String(existing.length).padStart(4, '0');
 
-    churches.appendRow([
-      nextId,
-      data.orgId || '',
-      data.churchName,
-      data.city || '',
-      data.state || '',
-      data.zip || '',
-      data.pastorName || '',
-      data.pastorEmail || '',
-      data.sectionLeaderRow || '',
-      'Active',
-      new Date()
-    ]);
+      churches.appendRow([
+        nextId,
+        data.orgId || '',
+        data.churchName,
+        data.city || '',
+        data.state || '',
+        data.zip || '',
+        data.pastorName || '',
+        data.pastorEmail || '',
+        data.sectionLeaderRow || '',
+        'Active',
+        new Date()
+      ]);
 
-    logAudit(data.addedBy || 'SYSTEM', 'CHURCH_ADDED',
-      data.churchName + (data.orgId ? ' [' + data.orgId + ']' : ''));
-    return { success: true, churchId: nextId };
+      logAudit(data.addedBy || 'SYSTEM', 'CHURCH_ADDED',
+        data.churchName + (data.orgId ? ' [' + data.orgId + ']' : ''));
+      return { success: true, churchId: nextId };
+    } finally {
+      lock.releaseLock();
+    }
   } catch(e) {
     return { success: false, error: e.message };
   }
@@ -1075,18 +1227,28 @@ function getChurches(params) {
 
 function updateChurchStatus(data) {
   try {
-    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    var churches = ss.getSheetByName('Churches');
-    var all = churches.getDataRange().getValues();
-    for (var i = 1; i < all.length; i++) {
-      if (all[i][0] === data.churchId) {
-        churches.getRange(i + 1, 10).setValue(data.status); // Active or Inactive
-        logAudit(data.updatedBy || 'SYSTEM', 'CHURCH_STATUS',
-          all[i][2] + ' → ' + data.status);
-        return { success: true };
+    var lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try {
+      var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      var churches = ss.getSheetByName('Churches');
+      var all = churches.getDataRange().getValues();
+      for (var i = 1; i < all.length; i++) {
+        if (all[i][0] === data.churchId) {
+          // Verify caller can modify this church's org
+          if (data.callerRole === 'Admin' && data.callerOrgId && String(all[i][1]) !== data.callerOrgId) {
+            return { success: false, error: 'Cannot modify churches in another organization' };
+          }
+          churches.getRange(i + 1, 10).setValue(data.status); // Active or Inactive
+          logAudit(data.updatedBy || 'SYSTEM', 'CHURCH_STATUS',
+            all[i][2] + ' → ' + data.status);
+          return { success: true };
+        }
       }
+      return { success: false, error: 'Church not found' };
+    } finally {
+      lock.releaseLock();
     }
-    return { success: false, error: 'Church not found' };
   } catch(e) {
     return { success: false, error: e.message };
   }
@@ -1340,30 +1502,54 @@ function getOrganizations() {
 
 function approveOrganization(data) {
   try {
-    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    var orgSheet = ss.getSheetByName('Organizations');
-    var all = orgSheet.getDataRange().getValues();
-
-    for (var i = 1; i < all.length; i++) {
-      if (String(all[i][0]) === String(data.orgId)) {
-        orgSheet.getRange(i + 1, 9).setValue('Active'); // Status column
-        logAudit('PLATFORM', 'ORG_APPROVED', all[i][1] + ' (' + data.orgId + ')');
-
-        // Create admin user for the org if PIN provided
-        if (data.adminPin) {
-          addUser({
-            pin: data.adminPin,
-            name: all[i][5],
-            email: all[i][6],
-            role: 'Admin',
-            church: '',
-            orgId: data.orgId
-          });
-        }
-        return { success: true };
-      }
+    // Only PlatformOwner can approve organizations
+    if (data.callerRole && data.callerRole !== 'PlatformOwner') {
+      return { success: false, error: 'Only the platform owner can approve organizations' };
     }
-    return { success: false, error: 'Organization not found' };
+
+    var adminUserData = null;
+    var orgFound = false;
+
+    var lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try {
+      var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      var orgSheet = ss.getSheetByName('Organizations');
+      var all = orgSheet.getDataRange().getValues();
+
+      for (var i = 1; i < all.length; i++) {
+        if (String(all[i][0]) === String(data.orgId)) {
+          orgFound = true;
+          orgSheet.getRange(i + 1, 9).setValue('Active'); // Status column
+          logAudit('PLATFORM', 'ORG_APPROVED', all[i][1] + ' (' + data.orgId + ')');
+
+          // Capture org admin info for user creation after releasing the lock
+          if (data.adminPin) {
+            adminUserData = {
+              pin: data.adminPin,
+              name: all[i][5],
+              email: all[i][6],
+              role: 'Admin',
+              church: '',
+              orgId: data.orgId,
+              callerRole: 'PlatformOwner'
+            };
+          }
+          break;
+        }
+      }
+    } finally {
+      lock.releaseLock();
+    }
+
+    if (!orgFound) return { success: false, error: 'Organization not found' };
+
+    // Create admin user outside the lock to avoid re-entrant deadlock
+    if (adminUserData) {
+      addUser(adminUserData);
+    }
+
+    return { success: true };
   } catch(e) {
     return { success: false, error: e.message };
   }
@@ -1414,41 +1600,50 @@ function getDenominations() {
 /** Submit onboarding request — creates pending org, notifies Steve */
 function submitOnboardRequest(data) {
   try {
-    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    var orgSheet = ss.getSheetByName('Organizations');
-    if (!orgSheet) return { success: false, error: 'Organizations sheet not found.' };
+    var newOrgId = null;
 
-    // Generate org ID from name (first letters, uppercase, max 6 chars)
-    var orgId = String(data.orgName || '').replace(/[^a-zA-Z\s]/g, '').split(/\s+/)
-      .map(function(w) { return w.charAt(0).toUpperCase(); }).join('').substring(0, 6);
-    // Check for duplicate and append number if needed
-    var existing = orgSheet.getDataRange().getValues();
-    var baseId = orgId;
-    var counter = 1;
-    while (existing.some(function(row) { return String(row[0]) === orgId; })) {
-      orgId = baseId + counter;
-      counter++;
+    var lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try {
+      var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+      var orgSheet = ss.getSheetByName('Organizations');
+      if (!orgSheet) return { success: false, error: 'Organizations sheet not found.' };
+
+      // Generate org ID from name (first letters, uppercase, max 6 chars)
+      var orgId = String(data.orgName || '').replace(/[^a-zA-Z\s]/g, '').split(/\s+/)
+        .map(function(w) { return w.charAt(0).toUpperCase(); }).join('').substring(0, 6);
+      // Check for duplicate and append number if needed
+      var existing = orgSheet.getDataRange().getValues();
+      var baseId = orgId;
+      var counter = 1;
+      while (existing.some(function(row) { return String(row[0]) === orgId; })) {
+        orgId = baseId + counter;
+        counter++;
+      }
+
+      var counties = (data.counties || []).join(',');
+
+      orgSheet.appendRow([
+        orgId,
+        data.orgName,
+        data.state,
+        data.denomCode,
+        data.denomName,
+        data.adminName,
+        data.adminEmail,
+        data.adminEmail,
+        'Pending',
+        new Date(),
+        counties
+      ]);
+
+      logAudit('ONBOARD', 'ORG_REQUEST', data.orgName + ' (' + orgId + ') — ' + data.adminName + ' <' + data.adminEmail + '>');
+      newOrgId = orgId;
+    } finally {
+      lock.releaseLock();
     }
 
-    var counties = (data.counties || []).join(',');
-
-    orgSheet.appendRow([
-      orgId,
-      data.orgName,
-      data.state,
-      data.denomCode,
-      data.denomName,
-      data.adminName,
-      data.adminEmail,
-      data.adminEmail,
-      'Pending',
-      new Date(),
-      counties
-    ]);
-
-    logAudit('ONBOARD', 'ORG_REQUEST', data.orgName + ' (' + orgId + ') — ' + data.adminName + ' <' + data.adminEmail + '>');
-
-    // Notify Steve
+    // Send notification email outside the lock — email can be slow
     try {
       var ownerEmail = PropertiesService.getScriptProperties().getProperty('PLATFORM_OWNER_EMAIL') || 'steve@citybioclean.com';
       MailApp.sendEmail({
@@ -1461,7 +1656,7 @@ function submitOnboardRequest(data) {
           '<p><strong>Denomination:</strong> ' + data.denomName + '</p>' +
           '<p><strong>Admin:</strong> ' + data.adminName + ' &lt;' + data.adminEmail + '&gt;</p>' +
           '<p><strong>Counties:</strong> ' + (data.counties || []).length + ' selected</p>' +
-          '<p><strong>Org ID:</strong> ' + orgId + '</p>' +
+          '<p><strong>Org ID:</strong> ' + newOrgId + '</p>' +
           '<p style="margin-top:20px;">Log in to the platform to approve this request.</p>' +
           '</div>',
         noReply: true
@@ -1470,7 +1665,7 @@ function submitOnboardRequest(data) {
       logAudit('SYSTEM', 'ONBOARD_EMAIL_ERROR', emailErr.message);
     }
 
-    return { success: true, orgId: orgId };
+    return { success: true, orgId: newOrgId };
   } catch(e) {
     return { success: false, error: e.message };
   }
